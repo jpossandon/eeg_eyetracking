@@ -40,20 +40,12 @@ if ~isstruct(varargin{1})
     cfg.ica_chunks_length       = 512;
 
     % eyedata
+    cfg.eyedata                 = 'yes';
     cfg.imagefield              = 'image';                                      % name of the image field in EDF data
     cfg.conditionfield          = {'ETtrigger',1};                              % field that define trial condition. 'ETtrigger' correspond to the time and data send with the eye-tracker to eeg trigger 
     cfg.resolution              = 41;                                           % image resolution in pixels per degree
     cfg.recalculate_eye         = 'no';                                         % 'yes' to recalculate eye movements with Engbert algorithm (or with a fixed velocity threshold)
-    cfg.eyes                    = 'monocular';
-
-    % eyedata
-    cfg.imagefield              = 'image';                                      % name of the image field in EDF data
-    cfg.eyedata                 = 'yes';                                        %there is an EDF file associated
-    cfg.conditionfield          = {'ETtrigger',1};                              % field that define trial condition. 'ETtrigger' correspond to the time and data send with the eye-tracker to eeg trigger 
-    cfg.resolution              = 41;                               % image resolution in pixels per degree
-    cfg.recalculate_eye         = 'no';                                         % 'yes' to recalculate eye movements with Engbert algorithm (or with a fixed velocity threshold)
-    cfg.eyes                    = 'monocular';
-              
+    cfg.eyes                    = 'monocular';           
 
     % cfg.times                   = [0 3500];
 
