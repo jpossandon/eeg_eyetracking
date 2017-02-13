@@ -1,0 +1,87 @@
+function stat = eegfile_stats(cfg, data_chunk_size)  
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% function eegfile_stats(cfg, event_file, data_chunk_size)    
+%
+% calculates statistics over the complete eeg data file corresponding to
+% the event_file (taking data from first to last trigger)
+% taking % small chunks of size data_chunk_size
+% Up to now, only range, variance and kurtosis over mean corrected chunks 
+%
+% JPO, OSNA 02/08/2011
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+cfg                             = correct_channels(cfg);  %if we need to correct for changed or dead files
+event                           = ft_read_event([cfg.eegfolder, cfg.filename, '.vmrk']);
+if strcmp(cfg.datastats,'all')
+    starts                      = [event(2).sample:data_chunk_size:event(end).sample]';        % we look at data between first and last trigger
+elseif strcmp(cfg.datastats,'events')
+    startsaux = [];
+    for e=1:length(cfg.trial_trig_eeg)
+        indxevents                  = find(strcmp(cfg.trial_trig_eeg{e}, {event.value}));
+        samples                     = [event.sample];
+        startsaux                   = [startsaux;samples(indxevents)'];
+    end
+    startsaux=sort(startsaux);
+end
+cfge                            = basic_preproc_cfg(cfg,[cfg.filename, '.vmrk']);
+cfge.continuous                 = 'yes';
+ if strcmp(cfg.datastats,'events')
+     starts = [];
+     chunksper = (cfg.trial_time(2)-cfg.trial_time(1))./data_chunk_size;
+     for e = 1:length(startsaux)
+         starts = [starts;[startsaux(e)+cfg.trial_time(1):data_chunk_size:startsaux(e)+chunksper*data_chunk_size]'];
+     end
+end
+trl                             = [starts,starts+data_chunk_size-1,zeros(length(starts),1)];
+    
+    
+% process data by steps of ~ 100MB
+steps = 1:150:length(trl);
+n = 1;
+stat.freq = [];
+for ip = steps
+    if ip == steps(end)
+        cfge.trl                        =  trl(ip:end,:);
+    else
+        cfge.trl                        =  trl(ip:ip+149,:); 
+    end
+    data                                = ft_preprocessing(cfge);
+    if ~isempty(cfg.correct_chan)                                           % in case channels are changed
+        for ip=1:length(data.trial)
+            data.trial{ip}    = data.trial{ip}(cfg.correct_chan,:);
+        end
+    end
+    cfgf.method                    = 'mtmfft';
+    cfgf.output                      = 'pow';
+    cfgf.taper                        = 'dpss';
+    cfgf.tapsmofrq                = 4;
+    cfgf.foi                             = 2:2:120;
+    cfgf.keeptrials                 = 'yes';
+    [freq]                               = ft_freqanalysis(cfgf, data);
+    stat.freq                          = cat(1,stat.freq,freq.powspctrm);
+    stat.theta                        = cat(1,stat.theta,mean(freq.powspctrm(:,:,1:5),3)');
+    stat.theta                        = cat(1,stat.theta,mean(freq.powspctrm(:,:,1:5),3)');
+    for e = 1:length(data.trial)
+        stat.absolute_range(:,n)        = max(data.trial{e},[],2)-min(data.trial{e},[],2);          % segment absolut amplitude distribution
+        stat.check(:,n)                       = std(data.trial{e},0,2);                                   % segments std distribution
+        stat.kurtosis(:,n)                    = kurtosis(data.trial{e},0,2);                              % segments kurtosis distribution
+        for ch = 1:size(data.trial{e},1)
+            p                                            = polyfit(1:size(data.trial{e},2),data.trial{e}(ch,:),1);
+            stat.trend(ch,n)                      = p(1);
+        end
+        n=n+1;
+    end
+end
+if ~isempty(cfg.elim_chan)                                           % in case channels were dead
+    stat.freq(:,cfg.elim_chan,:)            =NaN;
+    stat.absolute_range(cfg.elim_chan,:)    =NaN;
+    stat.check(cfg.elim_chan,:)             =NaN;
+    stat.kurtosis(cfg.elim_chan,:)          =NaN;
+end
+% k                               = size(stat.absolute_range,2)*(cfg.trim_percent/100)/2;
+% newabs                          = sort(stat.absolute_range,2);
+% stat.absolute_range_trimmean    = mean(newabs(:,round(k):end-round(k)),2);
+% stat.absolute_range_trimstd     = std(newabs(:,round(k):end-round(k)),0,2);
+stat.trl                        = trl;
+stat.chunksize                  = data_chunk_size;

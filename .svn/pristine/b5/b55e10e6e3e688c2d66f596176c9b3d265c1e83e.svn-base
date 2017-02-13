@@ -1,0 +1,54 @@
+function fh = plot_topos_TFR(cfg,data,times,freqs,baseline,collim,name)
+
+% load(cfg.chanfile)
+% cfgp = [];
+% cfgp.showlabels = 'no'; 
+% cfgp.fontsize = 12; 
+% cfgp.elec = elec;
+% cfgp.elec.chanpos = elec.pnt;
+% cfgp.rotate = 0;
+% cfgp.interactive = 'yes';
+% cfgp.baseline      = baseline;
+% cfgp.baselinetype     = 'relative';
+% cfgp.ylim = freqs;
+% cfgp.zlim = collim;
+% tiempos = times(1):times(3):times(2)-times(3);
+% 
+% fh = figure;
+% set(gcf,'Position', [7 31 1428 770])
+% numsp = 1;
+% for t = tiempos
+%      subplot(ceil(sqrt(length(tiempos))),ceil(sqrt(length(tiempos))),numsp)
+%      cfgp.xlim=[t t+times(3)];
+%      cfgp.comment = 'xlim'; 
+%      cfgp.commentpos = 'title'; 
+%      ft_topoplotTFR(cfgp, data); 
+%      numsp = numsp +1;
+% end
+
+
+chanlocs = readlocs(cfg.chanloc,'filetype','custom',...
+        'format',{'channum','sph_phi_besa','sph_theta_besa','ignore'},'skiplines',0);
+load('cmapjp','cmap')
+data                                = rebsl(data,baseline);
+fh = figure;
+set(gcf,'Position', [7 31 1428 770])
+numsp = 1;
+tiempos = times(1):times(3):times(2)-times(3);
+for t = tiempos
+     subplot(ceil(sqrt(length(tiempos))),ceil(sqrt(length(tiempos))),numsp)
+   
+     indxsamples    = data.time>=t & data.time<t+times(3);
+      indxfreq    = data.freq>=freqs(1) & data.freq<=freqs(2);
+     topoplot(mean(mean(data.powspctrm(:,indxfreq,indxsamples),3),2),chanlocs,'emarker',{'.','k',5,1},'maplimits',collim,'colormap',cmap);
+     title(sprintf('%2.2f < t < %2.2f',t,t+times(3)))
+     numsp = numsp +1;
+     if round(t*1000)==0
+         text(-1,0,'t=0','FontWeight','demi','FontSize',14)
+     end
+end
+
+
+
+ [ax,h]=suplabel(sprintf('%s    n=%d   zlim = [%2.2f %2.2f]',name, size(data.cumtapcnt,1),collim(1),collim(2)),'t',[.075 .1 .85 .85])
+  set(h,'FontSize',18)
