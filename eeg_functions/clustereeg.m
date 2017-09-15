@@ -5,27 +5,38 @@ function  [clusters] = clustereeg(st,H,elec,ch,times)
      HNeg(st<0 & H==1)   = 1;
 
      if ch>1 && times>1
-        [clusterp] = findclus(squeeze(HPos),elec.channeighbstructmat,'id');
-        [clustern] = findclus(squeeze(HNeg),elec.channeighbstructmat,'id');
-    elseif ch==1 && times>1
-        [clusterp] = findclus(squeeze(HPos),elec.channeighbstructmat,'id');
-        [clustern] = findclus(squeeze(HNeg),elec.channeighbstructmat,'id');
-    elseif ch>1 && times==1
-        [clusterp] = findclus(squeeze(HPos),elec.channeighbstructmat,'id');
-        [clustern] = findclus(squeeze(HNeg),elec.channeighbstructmat,'id');
+         if length(size(H))>2
+            [clusterp] = findcluster(HPos,elec.channeighbstructmat);
+            [clustern] = findcluster(HNeg,elec.channeighbstructmat);
+        else
+            [clusterp] = findclus(squeeze(HPos),elec.channeighbstructmat,'id');
+            [clustern] = findclus(squeeze(HNeg),elec.channeighbstructmat,'id');
+         end
+        %     elseif ch==1 && times>1
+%         [clusterp] = findclus(squeeze(HPos),elec.channeighbstructmat,'id');
+%         [clustern] = findclus(squeeze(HNeg),elec.channeighbstructmat,'id');
+%     elseif ch>1 && times==1
+%         [clusterp] = findclus(squeeze(HPos),elec.channeighbstructmat,'id');
+%         [clustern] = findclus(squeeze(HNeg),elec.channeighbstructmat,'id');
      end
      if any(clusterp(:))
         for cn = 1:max(clusterp(:))
-%             auxclusp(cn) = sum(squeeze(st(:,:,find(clusterp==cn))));
-        	auxclusp(cn) = sum(squeeze(st(find(clusterp'==cn))));
+            if length(size(H))>2
+                auxclusp(cn) = sum(squeeze(st(find(clusterp==cn))));
+            else        	
+                auxclusp(cn) = sum(squeeze(st(find(clusterp'==cn))));
+            end
         end
      else
          auxclusp = [];
      end
      if any(clustern(:))
         for cn = 1:max(clustern(:))
-%              auxclusn(cn) = sum(squeeze(st(:,:,find(clustern==cn))));
-            auxclusn(cn) = sum(squeeze(st(find(clustern'==cn))));
+            if length(size(H))>2
+                auxclusn(cn) = sum(squeeze(st(find(clustern==cn))));
+            else
+                auxclusn(cn) = sum(squeeze(st(find(clustern'==cn))));
+            end
         end
      else
          auxclusn = [];

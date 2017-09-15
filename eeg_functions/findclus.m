@@ -1,4 +1,4 @@
-function  [cluster] = findclus(data,neighboursmat,tipo)
+	function  [cluster] = findclus(data,neighboursmat,tipo)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % function  = findclus(data,neighboursmat,type)

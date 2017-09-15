@@ -1,4 +1,4 @@
-function [ERPall,toelim,ERP] = getERPsfromtrl(cfgs,trls,bsl,reref,tipo,keep)
+function [ERPall,toelim,ERP] = getERPsfromtrl(cfgs,trls,bsl,reref,tipo,lpfreq,keep)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % function [ERPall,ERP] = getERPsfromtrl(cfgs,trls,bsl,tipo,keep)
@@ -40,7 +40,7 @@ for e = 1:length(trls)
     toelim{e}           = toel;     
     
     if ~isempty(strfind(tipo,'ICA'))                 % we cut differently the data depending if we are going to clean the data with ICA or not. Currently, I am doing ICA with mean corrected epochs (alternatively could be done with HP filter above .5 hz), and after ICA rebaseline to the required bsl. There is no clear procedure here but this works well
-         cfge            = basic_preproc_cfg(cfg, cfg.event,'lpfilter','yes','lpfreq',120,'demean','yes');
+         cfge            = basic_preproc_cfg(cfg, cfg.event,'lpfilter','yes','lpfreq',lpfreq,'demean','yes');
 %         cfge            = basic_preproc_cfg(cfg, cfg.event,'lpfilter','yes','lpfreq',20,'demean','yes');
     else
         cfge            = basic_preproc_cfg(cfg, cfg.event,'lpfilter','yes','lpfreq',40);

@@ -39,12 +39,12 @@ fixpdf  = conv2(fixpdf,gauss', 'same');
 fixpdf  = fixpdf/sum(fixpdf(:));
 
 if ploteo == 1
-%       figure,imshow(fixpdf);
-%       caxis([0 max(fixpdf(:))])
+       figure,imshow(fixpdf);
+       caxis([0 max(fixpdf(:))])
     
 %       figure,imshow(log10(fixpdf),[]);
-       figure,imagesc(log10(fixpdf));
-      caxis([log10(max(fixpdf(:))) 0])
+%        figure,imagesc(log10(fixpdf));
+%       caxis([log10(max(fixpdf(:))) 0])
       colormap parula
     axis on
 end

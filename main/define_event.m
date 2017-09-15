@@ -50,11 +50,14 @@ if isnumeric(type)
     % prior to blink, previos line was wrong, does not invalidate previous analysis but it was keepin saccades opre and removin fixation post 
     % also: -1 indicates to selected events that occur after a blink and +1 the other way aroub 
 %      select_indx(find(eyedata.events.type(select_indx(2:end-1)-1)==3 | eyedata.events.type(select_indx(2:end-1)+1)==3)+1) = []; % this was wrong, removing only events after (beacuse of the +1) and the one wnat to remove is the previos one (the saccade)
-
+    % also be carefult with experiment that include first and last fixation
+    % that are cut
      blink_indx = find(eyedata.events.type==3);
-     %removes events occuring before a blink
+     %removes events occuring before a blink (usually a saccade and a fixation) 
     [~,IA] = intersect(select_indx,blink_indx-1);
-    select_indx(IA) = [];
+    [~,IAA] = intersect(select_indx,blink_indx-2);
+    [~,IAAA] = intersect(select_indx,blink_indx+1);
+    select_indx(union(union(IA,IAA),IAAA)) = [];
      %removes events occuring after a blink
 %     [~,IA] = intersect(select_indx,blink_indx+1);
 %     select_indx(IA) = [];
