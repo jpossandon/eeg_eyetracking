@@ -4,7 +4,7 @@ EEG         = toeeglabnew(cfg,cfg.filename,epochevents,[]);
     EEG         = eeg_checkset( EEG );
 
         % resampling otherwise the deconvolution matirx is imposible
-    rsf         = 250;
+    rsf         = 100;
     oldsf       = EEG.srate;
     EEG         = pop_resample( EEG, rsf);
 

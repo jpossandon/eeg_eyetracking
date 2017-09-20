@@ -10,7 +10,7 @@ function doimage(handle,dirp,format,name,cl)
 % - cl: if 1 image is closed after saving
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-filename = [dirp name '.' format];
+filename = fullfile(dirp,[name '.' format]);
 if strcmp(format,'epsc')
     filename = filename(1:end-1);
 elseif strcmp(format,'epsc2')
