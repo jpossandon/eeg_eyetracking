@@ -1,13 +1,17 @@
-function [EEG,winrej] = getDataDeconv(cfg,epochevents)    
+function [EEG,winrej] = getDataDeconv(cfg,epochevents,rsf)    
 EEG         = toeeglabnew(cfg,cfg.filename,epochevents,[]);                       
     EEG.event   = rmfield(EEG.event,'value');                   
     EEG         = eeg_checkset( EEG );
 
         % resampling otherwise the deconvolution matirx is imposible
-    rsf         = 100;
+    
+%         rsf         = 100;
     oldsf       = EEG.srate;
-    EEG         = pop_resample( EEG, rsf);
-
+    if ~isempty(rsf)
+        EEG         = pop_resample( EEG, rsf);
+    else
+        rsf = oldsf;
+    end
     % bad data from my cleaning procedure
     load([cfg.analysisfolder 'cleaning/' cfg.sujid '/' cfg.filename cfg.clean_name],'bad');  
     winrej      = round(bad/(oldsf/rsf));                              % to match the resampling
@@ -28,5 +32,6 @@ EEG         = toeeglabnew(cfg,cfg.filename,epochevents,[]);
         clear origChanloc
     end
     %need to filter the data, otherwise betas all disalignes
-    EEG = pop_eegfiltnew(EEG, [], 0.2, 4126, true, [],0);
+     EEG = pop_eegfiltnew(EEG, [], 0.25, 8250, true, [],0);
+%  EEG = pop_eegfiltnew(EEG, [], 0.25);
     EEG = eeg_checkset( EEG );
