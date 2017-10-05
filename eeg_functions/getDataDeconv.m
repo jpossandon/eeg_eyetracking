@@ -1,6 +1,8 @@
 function [EEG,winrej] = getDataDeconv(cfg,epochevents,rsf)    
-EEG         = toeeglabnew(cfg,cfg.filename,epochevents,[]);                       
-    EEG.event   = rmfield(EEG.event,'value');                   
+EEG         = toeeglabnew(cfg,cfg.filename,epochevents,[]);      
+if isfield(EEG.event,'value')
+    EEG.event   = rmfield(EEG.event,'value');
+end
     EEG         = eeg_checkset( EEG );
 
         % resampling otherwise the deconvolution matirx is imposible
