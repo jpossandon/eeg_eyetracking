@@ -23,7 +23,7 @@ line(zeros(size(data,1),1),linspace(0,size(data,1),size(data,1)),...
 %     end
 % end
         
-colormap('jet')
+% colormap('jet')
 caxis(cax)
 axis ij
 % caxis([-1 1])

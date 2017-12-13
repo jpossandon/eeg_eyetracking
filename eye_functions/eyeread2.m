@@ -100,47 +100,38 @@ if ~isfield(cfg, 'betweenmindur'),      cfg.betweenmindur   = 10;              e
 
 % read EDF file
 current = pwd;
-cd(cfg.edfreadpath)
-%try
-%[trial, meta] = edfread([cfg.EDFfolder cfg.filename  '.EDF'],'write');
-%catch
-%    [trial, meta] = edfread([cfg.EDFfolder cfg.filename  '.edf'],'write');
-%end
-[trial,meta] =totrial('/Volumes/nibaldo/trabajo/E283/data/s31vs/s31vs.edf',{'gaze'})
+% cd(cfg.edfreadpath)
+% try
+%  [trial, meta] = edfread([cfg.EDFfolder cfg.filename  '.EDF'],'write');
+% catch
+%     [trial, meta] = edfread([cfg.EDFfolder cfg.filename  '.edf'],'write');
+% end
+[trial,meta] =totrial(fullfile(cfg.EDFfolder,[cfg.filename '.edf']),{'gaze'});
 % an ugly fix for an error in the task free_viewing experiment CEM
-if isfield(cfg,'task_id')
-    if strcmp(cfg.task_id,'fv')
-        try
-            trial2 = edfread([cfg.EDFfolder cfg.filename  '.EDF'],'image');
-        catch
-            trial2 = edfread([cfg.EDFfolder cfg.filename  '.edf'],'image');
-        end
-        for e = 1:length(trial), 
-            trial(e).image.time = trial2(e).image.time;
-            [~,trial(e).image.msg] = strtok(trial2(e).image.msg);
-        end
-        clear trial2
-    end
-end
-    cd(current)
+
 
 %read metainformation 
-metainfo = readmeta(meta,length(trial));
-if isfield(cfg,'eyes')
-    if strcmp(cfg.eyes,'monocular') && length(unique(metainfo.besteye))==1
-       loopeyes = metainfo.besteye(1);
-    else
-       loopeyes = [1,2];   
-       selecteye = [metainfo.trialsxcalib(find(metainfo.trialsxcalib));metainfo.besteye(find(metainfo.trialsxcalib))];
-    end
+% metainfo = readmeta(meta,length(trial));
+% if isfield(cfg,'eyes')
+%     if strcmp(cfg.eyes,'monocular') && length(unique(metainfo.besteye))==1
+%        loopeyes = metainfo.besteye(1);
+%     else
+%        loopeyes = [1,2];   
+%        selecteye = [metainfo.trialsxcalib(find(metainfo.trialsxcalib));metainfo.besteye(find(metainfo.trialsxcalib))];
+%     end
+% end
+if isfield(trial,'left')
+    loopeyes = 1;
+elseif isfield(trial,'right')
+    loopeyes = 2;
 end
-
 %determine sampling rate, why I did this if everything is done in time?
-try                 
-    cfg.fs = single(1000/(trial(1).left.samples.time(2)-trial(1).left.samples.time(1)));
-catch
-    cfg.fs = single(1000/(trial(1).right.samples.time(2)-trial(1).right.samples.time(1)));
-end
+cfg.fs = meta.sF;
+% try                 
+%     cfg.fs = single(1000/(trial(1).left.samples.time(2)-trial(1).left.samples.time(1)));
+% catch
+%     cfg.fs = single(1000/(trial(1).right.samples.time(2)-trial(1).right.samples.time(1)));
+% end
 
 limitblink   = cfg.fs*cfg.blinkmindur/1000;             %10ms?
 limitfix     = cfg.fs*cfg.fixmindur /1000;             %6ms?
@@ -519,6 +510,11 @@ for trllop = 1:length(trial)
                 marks.time         = [marks.time,single(trial(trllop).(fnames{e}).time)];
                 marks.type         = [marks.type,repmat({'ETtrigger'},1,length(trial(trllop).(fnames{e}).time))];
                 marks.trial        = [marks.trial,repmat(trllop,1,length(trial(trllop).(fnames{e}).time))];
+            elseif strcmp(fnames{e},'trigger')
+                marks.value        = [marks.value,trial(trllop).trigger.value'];
+                marks.time         = [marks.time,single(trial(trllop).(fnames{e}).time)];
+                marks.type         = [marks.type,repmat({'ETtrigger'},1,length(trial(trllop).(fnames{e}).time))];
+                marks.trial        = [marks.trial,repmat(trllop,1,length(trial(trllop).(fnames{e}).time))];
             else
                 if isstruct(trial(trllop).(fnames{e}))
                     marks.value        = [marks.value, str2double(trial(trllop).(fnames{e}).msg)];
@@ -572,7 +568,8 @@ if isfield(cfg,'conditionfield')
 end
 
 eyedata.marks   = marks;
-eyedata.meta    = metainfo;
+% eyedata.meta    = metainfo;
+eyedata.meta    = meta;
 
 % adding all marks fields that can be informative to the event structure,
 % will work only for numeric data for now
