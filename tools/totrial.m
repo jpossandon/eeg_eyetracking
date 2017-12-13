@@ -27,7 +27,8 @@ if ~isempty(messages)
     messtime  = dac.Events.Messages.time(messages);
     messfield = (unique(mess(:,1)));
 end
-triggers  = strmatch('!CMD 0 write_ioport', dac.Events.Messages.info);
+% triggers  = strmatch('!CMD 0 write_ioport', dac.Events.Messages.info);
+triggers  = find(~cellfun(@isempty,regexp(dac.Events.Messages.info,'write_ioport')));
 if ~isempty(triggers)
     trig      = regexp(dac.Events.Messages.info(triggers),' ','split')';
     trig      = cat(1,trig{:});
