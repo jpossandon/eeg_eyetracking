@@ -16,7 +16,11 @@ else
     EEG = toeeglab(cfg,cfg.filename,[],[]);
 end
 
-
+if isfield(cfg,'lpfreq')
+    if isnumeric(cfg.lpfreq)
+       EEG = pop_eegfiltnew(EEG, [], cfg.lpfreq, [], 0, [], 0); 
+    end
+end
 
 if (cfg.remove_eye || cfg.remove_m) && cfg.raw
     EEG = eeg_checkset( EEG );

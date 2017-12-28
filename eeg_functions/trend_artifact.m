@@ -1,4 +1,4 @@
-function [value,sample] = range_artifact(cfg)
+function [value,sample] = range_artifact(cfg,varargin)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % function [value,sample] = range_artifact(cfg)
 % Reads the respective eeg file (cfg.filename) and calculates the rang
@@ -14,7 +14,7 @@ winl                            = cfg.clean_movwin_length;
 step                            = cfg.clean_mov_step;
 
 hdr                             = ft_read_header([cfg.eegfolder, cfg.filename, '.vhdr']);
-cfge                            = basic_preproc_cfg(cfg,[cfg.filename, '.vmrk']);
+cfge                            = basic_preproc_cfg(cfg,[cfg.filename, '.vmrk'],varargin{:});
 % process data in segment of ~100MB for fs = 1000 hz which is around 3 min
 % to get it overlap we need to make it overlapping the size of the moving
 % window

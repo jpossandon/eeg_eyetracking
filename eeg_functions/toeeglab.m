@@ -3,25 +3,28 @@ function EEG = toeeglab(cfg,EDFname,events,marks)
 % get EEG data
 %EEG = pop_loadbv(cfg.eegfolder,[EDFname '.vhdr']); 
 EEG = pop_fileio([cfg.eegfolder,EDFname '.vhdr']); 
+try
+    load([cfg.analysisfolder 'ICAm/' cfg.sujid '/' cfg.filename '_ICA.mat'],'cfg_ica')
+    if strcmp(cfg_ica.type,'amica')
+        EEG.icasphere = cfg_ica.mod.S;
+        EEG.icaweights = cfg_ica.mod.W;
+    elseif strcmp(cfg_ica.type,'runica')
+        EEG.icasphere = cfg_ica.sphere;
+        EEG.icaweights = cfg_ica.weights;
+    end
+    %EEG.icachansind = cellfun(@str2num,cfg_ica.topolabel);
+    EEG.icachansind = find(ismember(cfg_ica.origtopolabel,cfg_ica.topolabel));
+    catch
+    display(['No ICA file available at ' cfg.analysisfolder 'ICAm/' cfg.sujid '/' cfg.filename '_ICA.mat'])
+end
+    % make events
+    Eventindx = {};
+    if ~isempty(events)
+        Eventindx = [mat2cell([events.start'/EEG.srate],ones(size(events.start))),...
+            cellstr(num2str(events.type')),...
+            mat2cell(1./EEG.srate*ones(length(events.type),1),ones(size(events.type)))];
+    end
 
-load([cfg.analysisfolder 'ICAm/' cfg.sujid '/' cfg.filename '_ICA.mat'],'cfg_ica')
-if strcmp(cfg_ica.type,'amica')
-    EEG.icasphere = cfg_ica.mod.S;
-    EEG.icaweights = cfg_ica.mod.W;
-elseif strcmp(cfg_ica.type,'runica')
-    EEG.icasphere = cfg_ica.sphere;
-    EEG.icaweights = cfg_ica.weights;
-end
-%EEG.icachansind = cellfun(@str2num,cfg_ica.topolabel);
-EEG.icachansind = find(ismember(cfg_ica.origtopolabel,cfg_ica.topolabel));
-% make events
-Eventindx = {};
-if ~isempty(events)
-    Eventindx = [mat2cell([events.start'/EEG.srate],ones(size(events.start))),...
-        cellstr(num2str(events.type')),...
-        mat2cell(1./EEG.srate*ones(length(events.type),1),ones(size(events.type)))];
-end
-   
 % channel locations
 load(cfg.chanlocs)
 EEG.chanlocs = chanlocs;

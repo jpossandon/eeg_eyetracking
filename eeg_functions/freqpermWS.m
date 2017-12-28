@@ -1,4 +1,4 @@
-function stat = freqpermBT(data1,data2,elec,rep)
+function stat = freqpermWS(data1,data2,elec,rep)
 
 cfgst = [];
 % cfgst.channel          = {'MEG', '-MLP31', '-MLO12'};

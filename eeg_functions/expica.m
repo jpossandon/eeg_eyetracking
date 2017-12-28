@@ -49,7 +49,7 @@ for e = 1:length(varargin)              % loop through different datasets/sessio
         end
         startsaux=sort(startsaux);
     end  
-    cfge                            = basic_preproc_cfg(cfg,cfg.event,'lpfilter','yes','lpfreq',120,'demean','yes');
+    cfge                            = basic_preproc_cfg(cfg,cfg.event,'lpfilter','yes','lpfreq',cfg.lpfreq,'demean','yes');
     cfge.continuous                 = 'yes';
     if strcmp(cfg.ica_data,'events')
         starts = [];

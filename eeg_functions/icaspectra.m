@@ -7,7 +7,7 @@ function [cfg_ica] = icaspectra(cfg, cfg_ica)
 
 winlength           = 1;
 hdr                 = ft_read_header([cfg.eegfolder, cfg.filename, '.vhdr']);
-cfge                = basic_preproc_cfg(cfg,cfg.event);
+cfge                = basic_preproc_cfg(cfg,cfg.event,'lpfilter','yes','lpfreq',cfg.lpfreq);
 trl                 = [1:winlength*hdr.Fs:hdr.nSamples-winlength*hdr.Fs-1]';
 trl                 = [trl trl+winlength*hdr.Fs-1000/hdr.Fs zeros(length(trl),1)];
 
@@ -44,7 +44,7 @@ for comp = 1:size(cfg_ica.powspectra,1)
     [b,bint,r,rint,stats]           = regress(log(cfg_ica.powspectra(comp,:))',[ones(length(cfg_ica.spectra_f),1) log(cfg_ica.spectra_f)']);
     cfg_ica.comp_1overf_alpha(comp) = b(2);
     cfg_ica.comp_1overf_R2(comp)    = stats(1);
-    if cfg_ica.spectra_ratio20100(comp)>=1.7 %%cfg_ica.comp_1overf_R2(comp)<.65 && 
+    if cfg_ica.spectra_ratio20100(comp)>=cfg.ratio20thresh %%cfg_ica.comp_1overf_R2(comp)<.65 && 
         cfg_ica.comptoremove_m      = [cfg_ica.comptoremove_m;comp];
     end
 end

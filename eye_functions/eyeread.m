@@ -106,7 +106,8 @@ cd(cfg.edfreadpath)
 %catch
 %    [trial, meta] = edfread([cfg.EDFfolder cfg.filename  '.edf'],'write');
 %end
-[trial,meta] =totrial('/Volumes/nibaldo/trabajo/E283/data/s31vs/s31vs.edf',{'gaze'})
+error('do not use')
+[trial,meta] =totrial('/Volumes/nibaldo/trabajo/E283/data/s31vs/s31vs.edf',{'gaze'});
 % an ugly fix for an error in the task free_viewing experiment CEM
 if isfield(cfg,'task_id')
     if strcmp(cfg.task_id,'fv')

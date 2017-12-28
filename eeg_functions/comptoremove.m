@@ -1,7 +1,7 @@
 function [ratio] = comptoremove(cfg,cfg_ica,event_file,eyedata)
 
 % cfge = basic_preproc_cfg(cfg,event_file);
-cfge                            = basic_preproc_cfg(cfg,cfg.event,'lpfilter','yes','lpfreq',120,'demean','yes');
+cfge                            = basic_preproc_cfg(cfg,cfg.event,'lpfilter','yes','lpfreq',cfg.lpfreq,'demean','yes');
 % load([cfg.eyeanalysisfolder cfg.EDFname(1:end-4) 'eye'])
 
 [trlfix,eventfix]       = define_event(cfg,eyedata,1,{'dur','>20'},[10 1000]);
