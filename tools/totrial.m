@@ -115,6 +115,8 @@ for m = 1:length(trialIDs)
                 trial(m).(ojo).samples.rawy     = dac.Samples.py(sampleindx,ey)';
                 trial(m).(ojo).samples.rawxvel  = dac.Samples.rxvel(sampleindx,ey)';
                 trial(m).(ojo).samples.rawyvel  = dac.Samples.ryvel(sampleindx,ey)';
+                  trial(m).(ojo).samples.rx  = dac.Samples.rx(sampleindx,1)';
+                trial(m).(ojo).samples.ry  = dac.Samples.ry(sampleindx,1)';
             end
         end
 
@@ -126,10 +128,12 @@ for m = 1:length(trialIDs)
                 trial(m).(ojo).samples.hrefyvel = dac.Samples.hyvel(sampleindx,ey)';
             end
         end
-        if  isfield(trial,ojo)
-            trial(m).(ojo).samples.time         = dac.Samples.time(sampleindx)'-synctT-lag;
-            trial(m).(ojo).samples.pctime       = dac.Samples.time(sampleindx)';
-            trial(m).(ojo).samples.pupil        = dac.Samples.pa(sampleindx,ey)';
+        if exist('trial')
+            if  isfield(trial,ojo)
+                trial(m).(ojo).samples.time         = dac.Samples.time(sampleindx)'-synctT-lag;
+                trial(m).(ojo).samples.pctime       = dac.Samples.time(sampleindx)';
+                trial(m).(ojo).samples.pupil        = dac.Samples.pa(sampleindx,ey)';
+            end
         end
     end
     if ~isempty(messages)

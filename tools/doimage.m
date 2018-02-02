@@ -1,4 +1,4 @@
-function doimage(handle,dirp,format,name,cl)
+function doimage(handle,dirp,format,name,figsize,cl)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % function doimage(handle,dirp,format,name,cl)
@@ -18,11 +18,16 @@ elseif strcmp(format,'epsc2')
 elseif strcmp(format,'tiffnocompression')
     filename = filename(1:end-14);
 end
-set(handle, 'PaperPositionMode', 'auto')
 
-%   print(handle, '-r0', [dirp name '.' format], ['-d' format]);
+if isempty(figsize)
+    set(handle, 'PaperPositionMode', 'auto')
+else
+    set(handle,'paperunits','centimeter')
+    set(handle,'papersize',[figsize])
+    set(handle,'paperposition',[0 0 figsize]);
+end
 
-print(handle,filename, ['-d' format]);
+print(handle,filename, ['-d' format],'-r300','-opengl');
 % print(handle, '-opengl', ['-d' format], filename)
 
   if cl

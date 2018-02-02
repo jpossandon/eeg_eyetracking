@@ -12,7 +12,7 @@ for b=1:size(result.B,2)
     % clusters
     collim      =[-6*std(betas.avg(:)) 6*std(betas.avg(:))]; 
     fh = plot_stat(cfg_eeg,result.clusters(b),betas,[],interval,collim,.05,sprintf('Beta: %s',strrep(coeffs{b},'_',' | ')),1);
-    doimage(fh,pathfig,'png',[coeffs{b}],1)
+    doimage(fh,pathfig,'png',[coeffs{b}],[],1)
     
     % same but instead of voltage values, colorscale indicate the amount of
     % subjects that have positive or negative values at a given
@@ -41,7 +41,7 @@ for b=1:size(result.B,2)
                    maxch    =chnls(maxch);
                    fh =figure;
                     subplot(1,4,1)
-                   plot_stat(cfg_eeg,result.clusters(b),betas,[],[result.clusters(b).time(maxtts) result.clusters(b).time(maxtts)+.01 .01],collim,.05,sprintf('Beta:%s',coeffs{b}),0);
+                   plot_stat(cfg_eeg,result.clusters(b),betas,[],[result.clusters(b).time(maxtts) result.clusters(b).time(maxtts)+.02 .02],collim,.05,sprintf('Beta:%s',coeffs{b}),0);
                    subplot(1,4,2:4)
                    hold on
                     
@@ -58,7 +58,7 @@ for b=1:size(result.B,2)
                    set(gcf,'Position',[360 473 786 225],'Color',[1 1 1])
                    tightfig
                    doimage(fh,pathfig,...
-                       'png',[coeffs{b} '_' pn{1} 'cluster' num2str(cc) ],1)
+                       'png',[coeffs{b} '_' pn{1} 'cluster' num2str(cc) ],[],1)
     
                 end
             end

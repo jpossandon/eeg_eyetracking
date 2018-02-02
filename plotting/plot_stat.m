@@ -33,10 +33,17 @@ if isfield(stat,'negclusterslabelmat')
     else 
     neg = [];
 end
+if isfield(stat,'posclusterslabelmat')
+    if ndims(stat.posclusterslabelmat)>2
+        strprob = 'prob';
+    else
+        strprob = 'prob_abs';
+    end
+end
 if isfield(stat,'posclusters')
     if ~isempty(stat.posclusters)
         for e = 1:length(stat.posclusters)
-            if stat.posclusters(e).prob_abs < alpha
+            if stat.posclusters(e).(strprob) < alpha
                 pos = pos + (stat.posclusterslabelmat==e);
             end
         end
@@ -46,71 +53,22 @@ end
 if isfield(stat,'negclusters')
     if ~isempty(stat.negclusters)
         for e = 1:length(stat.negclusters)
-            if stat.negclusters(e).prob_abs < alpha
+            if stat.negclusters(e).(strprob) < alpha
                 neg = neg + (stat.negclusterslabelmat==e);
             end
         end
     end
 end
 
-% neg     = neg*(-1);
-% 
-% segms   = (stat.time(end)-stat.time(1))/times(3);
-% t = stat.time;
-% load(cfgp.chanfile)
-% 
-% cfg = [];
-% cfg.elec = elec;
-% cfg.rotate = 0;
-% % cfg.highlight = 'on';
-% 
-% figure
-% set(gcf,'Position', [7 31 1428 770])
-% numsp = 1;
-%  cfg.zlim = zlim;
-%  tiempos = times(1):times(3):times(2)-times(3);
-% for t = tiempos
-%        subplot(ceil(sqrt(length(tiempos))),ceil(sqrt(length(tiempos))),numsp)
-% %           subplot(1,1,numsp)
-%      cfg.xlim=[t t+times(3)];
-%      if sum(pos(:))~=0
-%         pos_int = mean(pos(:,find(stat.time>=t,1):find(stat.time>=t+times(3),1))'); 
-%      end
-%      if sum(neg(:))~=0
-%         neg_int = mean(neg(:,find(stat.time>=t,1):find(stat.time>=t+times(3),1))');
-%      end
-%      if sum(pos(:))~=0 & sum(neg(:))~=0
-%         cfg.highlightchannel = find((pos_int~=0 | neg_int~=0)& ~isnan(pos_int));
-%      elseif sum(pos(:))~=0
-%          cfg.highlightchannel = find(pos_int~=0 & ~isnan(pos_int));
-%      elseif sum(neg(:))~=0
-%          cfg.highlightchannel = find(neg_int~=0 & ~isnan(neg_int));
-%      end
-%      cfg.comment = 'xlim'; 
-% %      cfg.comment = 'yes'; 
-%      cfg.commentpos = 'title'; 
-%      if isfield(cfg,'highlightchannel')
-%         cfg.highlightchannel(cfg.highlightchannel>61)=[];
-%         cfg.highlight = 'on';
-%      end
-%      ft_topoplotER(cfg, data1vsdata2); 
-%      numsp = numsp +1;
-%       if isfield(cfg,'highlightchannel')
-%             cfg = rmfield(cfg,'highlightchannel');
-%                 cfg.highlight = 'off';
-%       end
-% end
-% 
 
-
-
-
-
-
-
-
+if isfield(stat,'posclusterslabelmat')
+    if ndims(stat.posclusterslabelmat)>2
+        auxF = stat.freq>stat.freqstoplot(1) & stat.freq<stat.freqstoplot(2);
+        pos  = squeeze(any(pos(:,auxF,:),2));
+        neg  = squeeze(any(neg(:,auxF,:),2));
+    end
+end
 neg     = neg*(-1);
-
 segms   = (stat.time(end)-stat.time(1))/times(3);
 t = stat.time;
  load(cfgp.chanlocs)
@@ -125,6 +83,7 @@ t = stat.time;
 % chanlocs = readlocs(cfgp.chanloc,'filetype','custom',...
 %          'format',{'channum','sph_phi_besa','sph_theta_besa','ignore'},'skiplines',0);
 load('cmapjp','cmap') 
+% cmap = cmocean('curl');
 % data                                = rebsl(data,baseline);
 if makefig
     fh = figure;
