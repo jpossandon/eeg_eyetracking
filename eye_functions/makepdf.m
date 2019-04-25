@@ -21,8 +21,8 @@ gwinstd = round(gwinstd/redux);
 siz = round(siz/redux);
 
 lfixall = round([y,x])./redux;
-lfixall(lfixall(:,1)<1 | lfixall(:,1)>siz(1),:)=[];
-lfixall(lfixall(:,2)<1 | lfixall(:,2)>siz(2),:)=[];
+lfixall(lfixall(:,1)<1 | lfixall(:,1)>siz(1) | isnan(lfixall(:,1)),:)=[];
+lfixall(lfixall(:,2)<1 | lfixall(:,2)>siz(2) | isnan(lfixall(:,2)),:)=[];
 fixs    = accumarray(double(round(lfixall)), 1,siz);
 
 % [X,Y]   = meshgrid(-2.5*gwinstd:1:2.5*gwinstd);

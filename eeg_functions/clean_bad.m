@@ -34,9 +34,9 @@ end
 %     elseif strcmp(cfg.artifact_reject_type,'visual')
 %         filename = [cfg.filename '_visual_continous_chunk' num2str(cfg.artifact_chunks_length) '.mat'];
 %     end
-    load([cfg.analysisfolder 'cleaning/' cfg.sujid '/' cfg.filename cfg.clean_name],'bad');
+    load([cfg.preprocanalysisfolder 'cleaning/' cfg.sujid '/' cfg.filename cfg.clean_name],'bad');
   
-%     load([cfg.analysisfolder 'preanalysis/' EDF_name(1:end-4) '_expgen_' cfg.artifact_reject '_var' num2str(cfg.zthreshold) '_muscle' num2str(cfg.muscle_threshold) ],'bad')             % load trials previously selected for elimination (line69)
+%     load([cfg.preprocanalysisfolder 'preanalysis/' EDF_name(1:end-4) '_expgen_' cfg.artifact_reject '_var' num2str(cfg.zthreshold) '_muscle' num2str(cfg.muscle_threshold) ],'bad')             % load trials previously selected for elimination (line69)
     
     toelim = [];
     for e = 1:size(bad,1)                                               
@@ -53,7 +53,7 @@ end
     
 % elseif strcmp(cfg.artifact_reject,'trial')
 % 
-% %     load([cfg.analysisfolder cfg.analysisname '/' EDF_name  EDF_name '_expgen_continous_var' num2str(cfg.zthreshold) '_muscle' num2str(cfg.muscle_threshold) '.mat'],'toelim'); 
+% %     load([cfg.preprocanalysisfolder cfg.analysisname '/' EDF_name  EDF_name '_expgen_continous_var' num2str(cfg.zthreshold) '_muscle' num2str(cfg.muscle_threshold) '.mat'],'toelim'); 
 % 
 % end
 

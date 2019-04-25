@@ -1,13 +1,14 @@
 function fh = plot_comp_spectra(cfg,cfg_ica,comps)
-
- try
- chanlocs = readlocs(cfg.chanloc,'filetype','custom',...
-        'format',{'channum','sph_phi_besa','sph_theta_besa','ignore'},'skiplines',0);
-catch
-    chanlocs = readlocs(cfg.chanloc,'filetype','custom',...
-        'format',{'channum','labels','sph_theta_besa','sph_phi_besa'},'skiplines',1);
- end
+% 
+%  try
+%  chanlocs = readlocs(cfg.chanloc,'filetype','custom',...
+%         'format',{'channum','sph_phi_besa','sph_theta_besa','ignore'},'skiplines',0);
+% catch
+%     chanlocs = readlocs(cfg.chanloc,'filetype','custom',...
+%         'format',{'channum','labels','sph_theta_besa','sph_phi_besa'},'skiplines',1);
+%  end
  % remove from chanlocs channels that are not used
+ load(cfg.chanlocs)
     elimchanloc = [];
     for ch =1:length(chanlocs)
         if isempty(strmatch(chanlocs(ch).labels(1:end),cfg_ica.topolabel,'exact'))

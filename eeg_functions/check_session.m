@@ -14,7 +14,7 @@ function check_session(cfg)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 hdr                 = ft_read_header([cfg.eegfolder, cfg.filename, '.vhdr']);
-load([cfg.analysisfolder cfg.analysisname '/' cfg.sujid '/' cfg.filename cfg.clean_name],'channelbad')
+load([cfg.preprocanalysisfolder cfg.analysisname '/' cfg.sujid '/' cfg.filename cfg.clean_name],'channelbad')
 
 % it is possible to define bad channels acordint to how much of the
 % complete recording is bad, or how much of the relevant segments are bad
@@ -90,13 +90,13 @@ for ch = 1:hdr.nChans
         ch_ratio(ch)    = sum(diff(aux_bad'))./denominator;
     end
 end
-save([cfg.analysisfolder cfg.analysisname '/' cfg.sujid '/' cfg.filename cfg.clean_name '.mat'],'ch_ratio','-append')
+save([cfg.preprocanalysisfolder cfg.analysisname '/' cfg.sujid '/' cfg.filename cfg.clean_name '.mat'],'ch_ratio','-append')
 
 % tag bad channel
 rem_chan = find(ch_ratio>cfg.clean_bad_channel_criteria);
 if ~isempty(rem_chan)
-    if exist([cfg.expfolder 'subjects_master_files/' upper(cfg.sujid) '_channels_corrections.mat'])
-        load([cfg.expfolder 'subjects_master_files/' upper(cfg.sujid) '_channels_corrections.mat'])
+    if exist([cfg.preprocanalysisfolder 'subjects_master_files/' upper(cfg.sujid) '_channels_corrections.mat'])
+        load([cfg.preprocanalysisfolder 'subjects_master_files/' upper(cfg.sujid) '_channels_corrections.mat'])
     else   
         chan_cor.filestochange   = {};
         chan_cor.correct_chan    = {};
@@ -120,6 +120,6 @@ if ~isempty(rem_chan)
             chan_cor.pre(end+1)              = 0;
         end
     end
-    save([cfg.expfolder 'subjects_master_files/' upper(cfg.sujid) '_channels_corrections.mat'],'chan_cor')
+    save([cfg.preprocanalysisfolder 'subjects_master_files/' upper(cfg.sujid) '_channels_corrections.mat'],'chan_cor')
 end
      

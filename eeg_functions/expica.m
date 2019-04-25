@@ -34,13 +34,13 @@ for e = 1:length(varargin)              % loop through different datasets/sessio
     [event]                         = ft_read_event([cfg.eegfolder cfg.event]);        % read for eeg events
     hdr                             = ft_read_header([cfg.eegfolder, cfg.filename, '.vhdr']);
 
-    if strcmp(cfg.ica_data,'all')
-       if length(event)>1
+    if strcmp(cfg.ica_data,'all') || strcmp(cfg.ica_data,'allfirsthp')
+       if length(event)>2
             starts                      = [event(2).sample: cfg.ica_chunks_length:event(end).sample]';        % we look at data between first and last trigger
         else
             starts                      = [1: cfg.ica_chunks_length:hdr.nSamples-cfg.ica_chunks_length]';        % we look at data between first and last trigger
         end
-      elseif strcmp(cfg.ica_data,'events')
+    elseif strcmp(cfg.ica_data,'events')
         startsaux = [];
         for ip=1:length(cfg.trial_trig_eeg)
             indxevents                  = find(strcmp(cfg.trial_trig_eeg{ip}, {event.value}));
@@ -49,7 +49,7 @@ for e = 1:length(varargin)              % loop through different datasets/sessio
         end
         startsaux=sort(startsaux);
     end  
-    cfge                            = basic_preproc_cfg(cfg,cfg.event,'lpfilter','yes','lpfreq',cfg.lpfreq,'demean','yes');
+    cfge                            = basic_preproc_cfg(cfg,cfg.event,'padding',cfg.ica_chunks_length/hdr.Fs*2,'lpfilter','yes','lpfreq',cfg.lpfreq,'demean','yes');
     cfge.continuous                 = 'yes';
     if strcmp(cfg.ica_data,'events')
         starts = [];
@@ -61,8 +61,18 @@ for e = 1:length(varargin)              % loop through different datasets/sessio
     cfge.trl                        = [starts,starts+cfg.ica_chunks_length-1,zeros(length(starts),1)];  
     
     [newtrl,toelim]                 = clean_bad(cfg,cfge.trl);              % eliminates egment that are bad according to the previos cleaning
-    cfge.trl                        = newtrl;
-    prearti                         = ft_preprocessing(cfge);   
+    
+    if strcmp(cfg.ica_data,'allfirsthp')
+        cfge.hpfilter = 'yes';
+        cfge.hpfreq   = 2.5;
+        cfge.trl      = [newtrl(1,1) newtrl(end,2) 0];
+        preartiALL    = ft_preprocessing(cfge);
+        cfgaux.trl    = newtrl;
+        prearti       = ft_redefinetrial(cfgaux, preartiALL);
+    else
+        cfge.trl                        = newtrl;
+        prearti                         = ft_preprocessing(cfge);   
+    end
     if ~isempty(cfg.correct_chan)                                           % in case channels are changed
         for ip=1:length(prearti.trial)
             prearti.trial{ip}    = prearti.trial{ip}(cfg.correct_chan,:);
@@ -76,6 +86,22 @@ for e = 1:length(varargin)              % loop through different datasets/sessio
     else
         combdata.trial      = [combdata.trial prearti.trial];
         combdata.time       = [combdata.time prearti.time];
+    end
+    clear prearti
+    if isfield(cfg,'spoverweight')
+        if ~isempty(cfg.spoverweight)
+            load([cfg.eyeanalysisfolder cfg.filename 'eye'])                                % use weight from pre_exp in experiment data to define artifact components
+            [trlsacaux,eventsacaux] = define_event(cfg,eyedata,2,{'amp','<50'},[20 10]);   % rather long saccades work better
+            [newtrl,toelim]                 = clean_bad(cfg, trlsacaux);              % eliminates egment that are bad according to the previos cleaning
+            newtrl(find(newtrl(:,1)<preartiALL.sampleinfo(1)' | newtrl(:,2)>preartiALL.sampleinfo(2)' ),:)=[];
+            cfgaux.trl     = newtrl;
+            prearti        = ft_redefinetrial(cfgaux, preartiALL);
+            sactodataratio = floor(50./cfg.spoverweight*floor(length(combdata.time{1})*length(combdata.trial)./(length(prearti.time{1})*length(prearti.trial))));
+            for spn = 1:sactodataratio
+                combdata.trial      = [combdata.trial prearti.trial];
+                combdata.time       = [combdata.time prearti.time];
+            end
+        end
     end
     clear prearti
 end
@@ -95,12 +121,12 @@ clear combdata
         cfg_ica.elim_chan = [];
     end
 
-   if ~isdir([cfg.analysisfolder 'ICAm/' cfg.sujid '/images/']), mkdir([cfg.analysisfolder 'ICAm/' cfg.sujid '/images/']),end
+   if ~isdir([cfg.preprocanalysisfolder 'ICAm/' cfg.sujid '/images/']), mkdir([cfg.preprocanalysisfolder 'ICAm/' cfg.sujid '/images/']),end
 cdir = pwd;
- cd(cfg.analysisfolder)
+ cd(cfg.preprocanalysisfolder)
  % try to use amica otherwise we use runica
 %  try
-%     modres = runamica11(datmat,[cfg.analysisfolder 'ICAm/' cfg.sujid '/' cfg.filename],size(datmat,1),size(datmat,2),'max_iter',1000,'max_threads',8);
+%     modres = runamica11(datmat,[cfg.preprocanalysisfolder 'ICAm/' cfg.sujid '/' cfg.filename],size(datmat,1),size(datmat,2),'max_iter',1000,'max_threads',8);
 %     cfg_ica.mod                         = modres;
 %     cfg_ica.topo                        = inv(modres.W * modres.S);
 %     cfg_ica.type                        = 'amica';
@@ -145,11 +171,11 @@ cfg_ica = icaspectra(cfg,cfg_ica);
 
 for e = 1:length(varargin)
     cfg                             = varargin{e};
-     save([cfg.analysisfolder 'ICAm/' cfg.sujid '/' cfg.filename '_ICA.mat'],'cfg_ica')
+     save([cfg.preprocanalysisfolder 'ICAm/' cfg.sujid '/' cfg.filename '_ICA.mat'],'cfg_ica')
 end
 
 if use_runica==0
-    rmdir([cfg.analysisfolder 'ICAm/' cfg.sujid '/' cfg.filename], 's')   % remove temporary directory for amica
+    rmdir([cfg.preprocanalysisfolder 'ICAm/' cfg.sujid '/' cfg.filename], 's')   % remove temporary directory for amica
 end
 %     
 % ica figure
@@ -160,9 +186,9 @@ fs = plot_comp_spectra(cfg,cfg_ica,1:length(cfg_ica.topolabel));
 % set(h,'FontSize',20)
 for e = 1:length(varargin)
     cfg                             = varargin{e};
-    saveas(fh,[cfg.analysisfolder 'ICAm/' cfg.sujid '/images/' cfg.filename '_' cfg.clean_name],'fig')
-    saveas(fs,[cfg.analysisfolder 'ICAm/' cfg.sujid '/images/' cfg.filename '_' cfg.clean_name '_pow'],'fig')
-%      doimage(fh,[cfg.analysisfolder 'ICAm/' cfg.sujid '/images/'],'tiff',[cfg.filename],1)
+    saveas(fh,[cfg.preprocanalysisfolder 'ICAm/' cfg.sujid '/images/' cfg.filename '_' cfg.clean_name],'fig')
+    saveas(fs,[cfg.preprocanalysisfolder 'ICAm/' cfg.sujid '/images/' cfg.filename '_' cfg.clean_name '_pow'],'fig')
+%      doimage(fh,[cfg.preprocanalysisfolder 'ICAm/' cfg.sujid '/images/'],'tiff',[cfg.filename],1)
 end    
 close(fh,fs)
 
@@ -175,7 +201,7 @@ close(fh,fs)
 % end
    
 % save_log([datestr(now) '   ' cfg.EDFname ' ICA: ' num2str(it) ' iterations, done with ' num2str(length(elimined)) ' of ' num2str(length(trl)) 'possible trials'] ,[cfg.logfolder cfg.EDFname ,'.log'])
-% save_log([datestr(now) '   Saving file ' cfg.analysisfolder 'ICA/' cfg.EDFname '_ICA.mat'] ,[cfg.logfolder cfg.EDFname ,'.log'])
+% save_log([datestr(now) '   Saving file ' cfg.preprocanalysisfolder 'ICA/' cfg.EDFname '_ICA.mat'] ,[cfg.logfolder cfg.EDFname ,'.log'])
 
 
 

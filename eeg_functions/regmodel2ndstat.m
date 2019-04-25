@@ -21,6 +21,7 @@ function [result] = regmodel2ndstat(data,tiempo,elec,npermute,stattype,mc)
 
 alfa = .05;
 trimming = .2;
+rng('default') 
 rng('shuffle')
 [ch,betas,times,subjects] = size(data);
  result.B = data;
@@ -28,7 +29,11 @@ for b = 1:betas
      
     if ch>1 && times>1
             auxdata             = permute(squeeze(data(:,b,:,:)),[3 1 2]); % subj x chan x time 
-        elseif ch==1 && times>1
+     elseif ch==1 && betas==1 && times>1
+            auxdata             = squeeze(data);
+            auxdata             = permute(reshape(auxdata,[1 size(auxdata)]),[3 1 2]); %subj x 1 x t
+        
+    elseif ch==1 && times>1
             auxdata             = squeeze(data);
             auxdata             = permute(auxdata(b,:,:),[3 1 2]); %subj x 1 x t
         elseif ch>1 && times==1
@@ -55,6 +60,8 @@ for b = 1:betas
                     st                      = squeeze(tr_m./tmSE);
                     H                       = squeeze(tcdf(st,size(auxdata,1)-1)<alfa/2) + squeeze(tcdf(st,size(auxdata,1)-1)>(1-alfa/2));
                     result.T(:,:,b)         = st;
+                    result.tr_m(:,:,b)      = squeeze(tr_m);
+                    result.tmSE(:,:,b)      = squeeze(tmSE);
                 case ('signpermT')
                     [H,pv,~,s]              = ttest(auxdata,0,alfa);   % this is double tailed by default
                     st                      = squeeze(s.tstat);
@@ -75,15 +82,17 @@ for b = 1:betas
                     randsuj             = randsample(1:subjects,subjects,'true');
                     auxdatab            = auxdata(randsuj,:,:);
                     tmSE                = winvar(auxdatab,trim);
+                    bootTMmean            = trimmean(auxdatab,trim*100*2,'floor',1);
                      if strcmp(stattype,'bootet') || strcmp(stattype,'boottrimet')
-                        st                  = (trimmean(auxdatab,trim*100*2,'floor',1)-tr_m)./tmSE;
+                        st                  = (bootTMmean-tr_m)./tmSE;
                      elseif strcmp(stattype,'bootsym') || strcmp(stattype,'boottrimsym')
-                        st                  = abs(trimmean(auxdatab,trim*100*2,'floor',1)-tr_m)./tmSE;
+                        st                  = abs(bootTMmean-tr_m)./tmSE;
                      end
-                     st                 = squeeze(st);
+                     st                     = squeeze(st);
 %                     stboot(:,b,:,p-1)   = st; %WHY? 
-                    stboot(:,:,b,p-1) = st;   
-                   H                       = squeeze(tcdf(st,size(auxdata,1)-1)<alfa/2) + squeeze(tcdf(st,size(auxdata,1)-1)>(1-alfa/2));
+                    stboot(:,:,b,p-1)       = st;   
+                    bootM(:,:,b,p-1 )       = squeeze(bootTMmean);
+                   H                        = squeeze(tcdf(st,size(auxdata,1)-1)<alfa/2) + squeeze(tcdf(st,size(auxdata,1)-1)>(1-alfa/2));
                     
 %                     Tmax(p-1)   = max(Taux(p-1,:,:));
             % this is changing the sign of the beta 
@@ -156,17 +165,20 @@ switch stattype
         pb(pb==0)       = 1/npermute;
         result.pvalnc   = pb*2;
         result.Hnc      = (pb*2)<alfa;
+        result.boot95CI = prctile(stboot,[2.5 97.5],4);  
     case {'bootet','boottrimet'}
         pb              = sum((repmat(squeeze(result.T),[1 1 1 size(stboot,4)])-stboot)<0,4)./npermute;
         pb              = min(cat(4,pb,1-pb),[],4);
         pb(pb==0)       = 1/npermute;
         result.pvalnc   = pb*2;
         result.Hnc      = (pb*2)<alfa;
+%         result.boot95CI = prctile(bootM,[2.5 97.5],4);  
     case {'bootsym','boottrimsym'}
         pb              = sum((repmat(squeeze(abs(result.T)),[1 1 1 size(stboot,4)])-stboot)<0,4)./npermute;
         pb(pb==0)       = 1/npermute;
         result.pvalnc   = pb;
         result.Hnc      = pb<alfa;
+        result.boot95CI = prctile(stboot,[2.5 97.5],4);  
 end
 switch mc
     case('maxsT')
@@ -185,7 +197,9 @@ switch mc
             result.TFCEstat(b).time = tiempo;
             if find(posclus(:)>0)
                 result.TFCEstat(b).posclusterslabelmat = posclus;
-                for ei = [unique(result.TFCEstat(b).posclusterslabelmat)]'
+                auxei = [unique(result.TFCEstat(b).posclusterslabelmat)];
+                if iscolumn(auxei),auxei=auxei';end
+                for ei = auxei
                     if ei>0
                     result.TFCEstat(b).posclusters(ei).prob = NaN; % this need to be fixed 
                     end
@@ -197,7 +211,9 @@ switch mc
             negclus = findclus(squeeze(result.TFCE(:,:,b))'<-thresholds(b),elec.channeighbstructmat,'id'); % cluster TCFE values above threshold
             if find(negclus(:)>0)
                 result.TFCEstat(b).negclusterslabelmat = negclus;
-                for ei = unique(result.TFCEstat(b).negclusterslabelmat)'
+                 auxei = [unique(result.TFCEstat(b).negclusterslabelmat)];
+                if iscolumn(auxei),auxei=auxei';end
+               for ei = auxei
                     if ei>0
                     result.TFCEstat(b).negclusters(ei).prob = NaN; % this need to be fixed 
                     end
@@ -209,32 +225,59 @@ switch mc
         end
     case('cluster')
         for b = 1:betas
-            
+            result.clusters(b).texto = [];
             if find(result.clusters(b).clus_pos(:)>0)
-            result.clusters(b).posclusterslabelmat = result.clusters(b).clus_pos;
-                for ei = [unique(result.clusters(b).posclusterslabelmat)]'
+                result.clusters(b).posclusterslabelmat = result.clusters(b).clus_pos;
+                result.clusters(b).posclusters_prob_abs = nan(size(result.clusters(b).clus_pos));
+                auxei = [unique(result.clusters(b).posclusterslabelmat)];
+                if iscolumn(auxei),auxei=auxei';end
+                for ei = auxei
                     if ei>0
                         result.clusters(b).posclusters(ei).prob = sum(result.clusters(b).MAXst>result.clusters(b).maxt_pos(ei))./length(result.clusters(b).MAXst);  % this is very conservative and unfair 
                         result.clusters(b).posclusters(ei).prob_abs = 2.*sum(result.clusters(b).MAXst_noabs(:,1)>result.clusters(b).maxt_pos(ei))./numel(result.clusters(b).MAXst_noabs(:)); % this needs the correction by btwo because we are doing two tests, one for negative and one for positive clusters
+                        result.clusters(b).posclusters_prob_abs(result.clusters(b).posclusterslabelmat==ei) = result.clusters(b).posclusters(ei).prob_abs; 
+                        if  result.clusters(b).posclusters(ei).prob_abs<alfa
+                        indxclus = find(sum(result.clusters(b).posclusterslabelmat==ei));
+                        result.clusters(b).texto = [result.clusters(b).texto;sprintf('Positive cluster %03d prob_abs = %1.4f, from t %+05d to %+05d ms',ei,...
+                            result.clusters(b).posclusters(ei).prob_abs,round(1000*result.clusters(b).time(indxclus(1))),...
+                            round(1000*result.clusters(b).time(indxclus(end))))];
+                        end
+
                     end
                 end
             else
                 result.clusters(b).posclusterslabelmat = [];
                 result.clusters(b).posclusters = []; 
+                result.clusters(b).posclusters_prob_abs = [];
             end
             if find(result.clusters(b).clus_neg(:)>0)
                 result.clusters(b).negclusterslabelmat = result.clusters(b).clus_neg;
-                for ei = [unique(result.clusters(b).negclusterslabelmat)]'
+                result.clusters(b).negclusters_prob_abs = nan(size(result.clusters(b).clus_neg));
+                
+               auxei = [unique(result.clusters(b).negclusterslabelmat)];
+                if iscolumn(auxei),auxei=auxei';end
+                for ei = auxei
                     if ei>0
                         result.clusters(b).negclusters(ei).prob = sum(result.clusters(b).MAXst>abs(result.clusters(b).maxt_neg(ei)))./length(result.clusters(b).MAXst);
                         result.clusters(b).negclusters(ei).prob_abs = 2.*sum(result.clusters(b).MAXst_noabs(:,2)<result.clusters(b).maxt_neg(ei))./numel(result.clusters(b).MAXst_noabs(:));
+                        result.clusters(b).negclusters_prob_abs(result.clusters(b).negclusterslabelmat==ei) = result.clusters(b).negclusters(ei).prob_abs; 
+                        
+                        if result.clusters(b).negclusters(ei).prob_abs<alfa
+                        indxclus = find(sum(result.clusters(b).negclusterslabelmat==ei));
+                        result.clusters(b).texto = [result.clusters(b).texto;sprintf('Negative cluster %03d prob_abs = %1.4f, from t %+05d to %+05d ms',ei,...
+                            result.clusters(b).negclusters(ei).prob_abs,round(1000*result.clusters(b).time(indxclus(1))),...
+                            round(1000*result.clusters(b).time(indxclus(end))))];
+                        end
+
                     end
                 end
             else
                 result.clusters(b).negclusters = []; 
                 result.clusters(b).negclusterslabelmat = [];
+                result.clusters(b).negclusters_prob_abs = [];
             end
         end
+        
 end
 result.statlabel = [stattype,'_',mc];   
 

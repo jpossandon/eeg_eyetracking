@@ -17,12 +17,15 @@ mask    = randsample([-1 1],size(Y,1),'true')';  % this was before inside the lo
 for ch = 1:size(Y,2)
 %     sprintf('Processing Channel %d/%d',ch,size(Y,2))
     for t = 1:size(Y,3)
+        if all(isnan(Y(:,ch,t)))
+         continue
+        else
         stats           = regstats(Y(:,ch,t),XY,'linear',{'tstat','fstat','rsquare','r','mse'});
         Bt(ch,:,t)      = stats.tstat.t;
         B(ch,:,t)      = stats.tstat.beta;
         STATS(ch,:,t)  = [stats.rsquare,stats.fstat.f,stats.fstat.pval,stats.fstat.sse,stats.fstat.dfe,stats.fstat.ssr,stats.fstat.dfr];
         residuals(ch,t,:) = stats.r;
-
+        end
         if p>1 && strcmp(coding,'effect')% to test the constant with effect coding
             stats       = regstats(Y(:,ch,t).*mask,XY,'linear',{'tstat'});
             Bt(ch,1,t)  = stats.tstat.t(1);

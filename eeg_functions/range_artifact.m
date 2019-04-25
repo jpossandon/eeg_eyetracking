@@ -28,7 +28,7 @@ if hdr.nSamples-times(end)<winl*hdr.Fs % in case the rest is shorther than winl
 end
 
 if strcmp(cfg.clean_ica_correct,'yes')
-   load([cfg.analysisfolder 'ICAm/' cfg.sujid '/' cfg.filename '_ICA.mat'])
+   load([cfg.preprocanalysisfolder 'ICAm/' cfg.sujid '/' cfg.filename '_ICA.mat'])
 end
 
 tic

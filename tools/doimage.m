@@ -1,7 +1,7 @@
-function doimage(handle,dirp,format,name,figsize,cl)
+function doimage(handle,dirp,format,name,res,mode,figsize,cl)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% function doimage(handle,dirp,format,name,cl)
+% function doimage(handle,dirp,format,name,figsize,cl)
 %
 % - handle: figure handle
 % - dirp: path to save the figure
@@ -26,8 +26,11 @@ else
     set(handle,'papersize',[figsize])
     set(handle,'paperposition',[0 0 figsize]);
 end
-
-print(handle,filename, ['-d' format],'-r300','-opengl');
+if strcmp(mode,'painters')
+    print(handle,filename, ['-d' format],['-r' res],'-painters');%600
+elseif strcmp(mode,'opengl')
+    print(handle,filename, ['-d' format],['-r' res],'-opengl');%1200
+end
 % print(handle, '-opengl', ['-d' format], filename)
 
   if cl

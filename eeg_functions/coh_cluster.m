@@ -7,7 +7,7 @@ if nch1~=nch2 | nch1~=nchans
     error('Channels do not match')
 end
 elec        = bineigh(elec);
-alfa        = .1/nchoosek(nchans,2);
+alfa        = .0005%.1/nchoosek(nchans,2);
 data1 = permute(data1,[4,1,2,3]);
 data2 = permute(data2,[4,1,2,3]);
 for np = 1:npermute+1

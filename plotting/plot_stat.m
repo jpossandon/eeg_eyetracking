@@ -69,8 +69,13 @@ if isfield(stat,'posclusterslabelmat')
     end
 end
 neg     = neg*(-1);
-segms   = (stat.time(end)-stat.time(1))/times(3);
-t = stat.time;
+if isfield(stat,'time')
+    datatime = stat.time;
+else
+    datatime = data1vsdata2.time;
+end
+% segms   = (stat.time(end)-stat.time(1))/times(3);
+% t = stat.time;
  load(cfgp.chanlocs)
 % elimchanloc = [];
 %     for ch =1:length(chanlocs)
@@ -90,17 +95,17 @@ if makefig
     set(gcf,'Position', [7 31 1428 770])
 end
 numsp = 1;
-tiempos = round(times(1)*1000):round(times(3)*1000):round(times(2)*1000-times(3)*1000);
+tiempos = floor(times(1)*1000):round(times(3)*1000):round(times(2)*1000-times(3)*1000);
 tiempos = tiempos/1000;
 for t = tiempos
     if makefig
         subplot(ceil(sqrt(length(tiempos))),ceil(sqrt(length(tiempos))),numsp)
     end
       if sum(pos(:))~=0
-        pos_int = mean(pos(:,find(stat.time>=t,1):find(stat.time>=t+times(3),1))'); 
+        pos_int = mean(pos(:,find(datatime>=t,1):find(datatime>=t+times(3),1))'); 
       end
       if sum(neg(:))~=0
-        neg_int = mean(neg(:,find(stat.time>=t,1):find(stat.time>=t+times(3),1))');
+        neg_int = mean(neg(:,find(datatime>=t,1):find(datatime>=t+times(3),1))');
       end
      if sum(pos(:))~=0 & sum(neg(:))~=0
         cfg.highlightchannel = find((pos_int~=0 | neg_int~=0)& ~isnan(pos_int));
@@ -117,7 +122,8 @@ for t = tiempos
      indxsamples    = data1vsdata2.time>=t & data1vsdata2.time<t+times(3);
 %      topoplot(mean(data1vsdata2.avg(:,indxsamples),2),chanlocs,'emarker',{'.','k',5,1},'emarker2',{cfg.highlightchannel,'.','k',15,1},'maplimits',zlim);
      if isfield(cfg,'highlightchannel')
-            topoplot(mean(data1vsdata2.avg(:,indxsamples),2),chanlocs,'emarker2',{cfg.highlightchannel,'.',[0 0 0],5,1},'maplimits',zlim,'colormap',cmap,'headrad','rim','electrodes','off');
+            topoplot(mean(data1vsdata2.avg(:,indxsamples),2),chanlocs,'emarker2',{cfg.highlightchannel,'.',[0 0 0],8,1},'maplimits',zlim,'colormap',cmap,'headrad','rim','electrodes','off');
+  %            topoplot(mean(data1vsdata2.avg(:,indxsamples),2),chanlocs,'emarker2',{cfg.highlightchannel,'.',[0.4 0.4 0.4],11,1},'maplimits',zlim,'colormap',cmap,'headrad','rim','electrodes','off');
 %            topoplot(mean(data1vsdata2.avg(:,indxsamples),2),chanlocs,'emarker2',{cfg.highlightchannel,'.',[0 0 0],5,1},'maplimits',zlim,'colormap',cmap,'electrodes','off');
            
            axis([-.6 .6 -.6 .6])

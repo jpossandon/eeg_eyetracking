@@ -54,7 +54,7 @@ for e = 1:length(trls)
     end
     
      if ~isempty(strfind(tipo,'ICA'))
-        load([cfg.analysisfolder 'ICAm/' cfg.sujid '/' cfg.filename '_ICA.mat'],'cfg_ica') % ica weights
+         load([cfg.preprocanalysisfolder 'ICAm/' cfg.sujid '/' cfg.filename '_ICA.mat'],'cfg_ica') % ica weights
         if strcmp(tipo,'ICAem')
             data                            = ICAremove(data,cfg_ica,unique([cfg_ica.comptoremove;cfg_ica.comptoremove_m]),cfg_ica.topolabel,1:length(cfg_ica.topolabel),1:length(cfg_ica.topolabel));               % removing of eye and muscleartifact ICA components
         elseif strcmp(tipo,'ICAm')
@@ -98,7 +98,7 @@ for e = 1:length(trls)
     if nargout>2
         
         if strcmp(tipo,'comp')
-            load([cfg.analysisfolder 'ICAm/' cfg.sujid '/' cfg.filename '_ICA.mat'],'cfg_ica') % ica weights
+            load([cfg.preprocanalysisfolder 'ICAm/' cfg.sujid '/' cfg.filename '_ICA.mat'],'cfg_ica') % ica weights
             data                       = ft_componentanalysis(cfg_ica, data);
             for tr=1:length(data.trial)
                 data.trial{tr} = repmat(sign(cfg.comptoanal),1,size(data.trial{1},2)).*data.trial{tr}(abs(cfg.comptoanal),:);
@@ -127,4 +127,7 @@ if  strcmp(reref,'yes')
     data_all                            = reref_prepro(cfgr, data_all);
 end
 data_all                                = rebsl(data_all,bsl);
-TFRall.(tipo)                           = ft_freqanalysis(cfgTFR, data_all);     
+TFRall.(tipo)                           = ft_freqanalysis(cfgTFR, data_all);
+cfgTFR.output        = 'pow';
+auxTFR = ft_freqanalysis(cfgTFR,ft_timelockanalysis([],data_all));
+TFRall.(tipo).erppow                    = auxTFR.powspctrm;

@@ -1,4 +1,4 @@
-function [EEG,winrej] = getDataDeconv(cfg,epochevents,rsf)    
+function [EEG,winrej] = getDataDeconv(cfg,epochevents,rsf,hpfilter)    
 EEG         = toeeglabnew(cfg,cfg.filename,epochevents,[]);      
 if isfield(EEG.event,'value')
     EEG.event   = rmfield(EEG.event,'value');
@@ -15,7 +15,7 @@ end
         rsf = oldsf;
     end
     % bad data from my cleaning procedure
-    load([cfg.analysisfolder 'cleaning/' cfg.sujid '/' cfg.filename cfg.clean_name],'bad');  
+    load([cfg.preprocanalysisfolder 'cleaning/' cfg.sujid '/' cfg.filename cfg.clean_name],'bad');  
     winrej      = round(bad/(oldsf/rsf));                              % to match the resampling
        % removal of channels
     cfg         = correct_channels(cfg);
@@ -25,7 +25,7 @@ end
         EEG         = eeg_checkset( EEG );
     end
     % this takes out the ICA component considered artefactual
-    load([cfg.analysisfolder 'ICAm/' cfg.sujid '/' cfg.filename '_ICA.mat'],'cfg_ica')   
+    load([cfg.preprocanalysisfolder 'ICAm/' cfg.sujid '/' cfg.filename '_ICA.mat'],'cfg_ica')   
     EEG = pop_subcomp( EEG, unique([cfg_ica.comptoremove;cfg_ica.comptoremove_m])', 0); 
 
      % after ICA removal we interpolate missing channels
@@ -34,6 +34,7 @@ end
         clear origChanloc
     end
     %need to filter the data, otherwise betas all disalignes
-     EEG = pop_eegfiltnew(EEG, [], 0.25, 8250, true, [],0);
-%  EEG = pop_eegfiltnew(EEG, [], 0.25);
-    EEG = eeg_checkset( EEG );
+    if hpfilter
+    EEG = pop_eegfiltnew(EEG, 0.25, 45, 3300, 0, [],0);
+     EEG = eeg_checkset( EEG );
+    end

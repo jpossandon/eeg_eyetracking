@@ -4,7 +4,7 @@ function EEG = toeeglab(cfg,EDFname,events,marks)
 %EEG = pop_loadbv(cfg.eegfolder,[EDFname '.vhdr']); 
 EEG = pop_fileio([cfg.eegfolder,EDFname '.vhdr']); 
 
-load([cfg.analysisfolder 'ICAm/' cfg.sujid '/' cfg.filename '_ICA.mat'],'cfg_ica')
+load([cfg.preprocanalysisfolder 'ICAm/' cfg.sujid '/' cfg.filename '_ICA.mat'],'cfg_ica')
 if strcmp(cfg_ica.type,'amica')
     EEG.icasphere = cfg_ica.mod.S;
     EEG.icaweights = cfg_ica.mod.W;

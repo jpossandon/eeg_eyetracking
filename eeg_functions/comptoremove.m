@@ -4,8 +4,8 @@ function [ratio] = comptoremove(cfg,cfg_ica,event_file,eyedata)
 cfge                            = basic_preproc_cfg(cfg,cfg.event,'lpfilter','yes','lpfreq',cfg.lpfreq,'demean','yes');
 % load([cfg.eyeanalysisfolder cfg.EDFname(1:end-4) 'eye'])
 
-[trlfix,eventfix]       = define_event(cfg,eyedata,1,{'dur','>20'},[10 1000]);
-trlfix(:,2)             =[trlfix(:,1)+eventfix.dur'+10];
+[trlfix,eventfix]       = define_event(cfg,eyedata,1,{'dur','>20'},[0 1000]);
+trlfix(:,2)             = [trlfix(:,1)+eventfix.dur'];
 [trlsacaux,eventsacaux] = define_event(cfg,eyedata,2,{'amp','>2.5'},[10 1000]);   % rather long saccades work better
 trlsac                  =[trlsacaux(:,1) trlsacaux(:,1)+[eventsacaux.dur]'+10 trlsacaux(:,3)];
 [trlblink,eventsblink]  = define_event(cfg,eyedata,3,{'dur','>20'},[10 1000]);

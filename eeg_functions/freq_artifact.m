@@ -31,7 +31,7 @@ cfgf.taper                      = 'hanning';
 cfgf.toi                        = 0:mov_step:segl-mov_step;
 
 if strcmp(cfg.clean_ica_correct,'yes')
-   load([cfg.analysisfolder 'ICAm/' cfg.sujid '/' cfg.filename '_ICA.mat'])
+   load([cfg.preprocanalysisfolder 'ICAm/' cfg.sujid '/' cfg.filename '_ICA.mat'])
 end
 % segment to cut, taking care that they will overlap
 times                           = win_length*hdr.Fs:segl*hdr.Fs:hdr.nSamples;
@@ -51,6 +51,7 @@ for t = times
        cfge.trl         = [t-win_length*hdr.Fs/2 hdr.nSamples -win_length*hdr.Fs/2];
        cfgf.toi         = 0:mov_step:-win_length+(cfge.trl(2)-cfge.trl(1)+cfge.trl(3))./hdr.Fs;
     end
+    cfge.padding        = segl+2;
     data                = ft_preprocessing(cfge);
     old_label           = data.label;
     [cfg, data]         = correct_channels(cfg, data);

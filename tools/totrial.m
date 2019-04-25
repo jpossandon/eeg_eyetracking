@@ -16,7 +16,25 @@ if isempty(synctimes)
     display(sprintf('\n\nNO SYNTCTIMES\n\n'))
 else
     if length(trialIDs)~=length(synctimes)
-        error('TRIALID does not match SYNCTIME')
+        warning('TRIALID does not match SYNCTIME, using only trials with TRIALID/SYNCTIME pairs')
+        trialIDTimes = dac.Events.Messages.time(trialIDs);
+        synctimeTimes = dac.Events.Messages.time(synctimes);
+        keepThis = [];
+        for ttt = 1:length(trialIDTimes)
+            if ttt < length(trialIDTimes)
+                auxf = find(synctimeTimes>trialIDTimes(ttt) & synctimeTimes<trialIDTimes(ttt+1));
+            else 
+                auxf = find(synctimeTimes>trialIDTimes(ttt));
+            end
+                if length(auxf)==1
+                    keepThis = [keepThis,[ttt;auxf]];
+                elseif length(auxf)>1 % if there is more than one synctime per trial we keep the first one
+                    keepThis = [keepThis,[ttt;auxf(1)]]; 
+                end % implicit, if there is no synctime we skip the trial
+        end
+        trialIDs = trialIDs(keepThis(1,:));
+        synctimes = synctimes(keepThis(2,:));
+            
     end
 end
 messages  = strmatch('METATR', dac.Events.Messages.info);
@@ -38,7 +56,8 @@ if ~isempty(triggers)
 end
 for m = 1:length(trialIDs)
     t1 = dac.Events.Messages.time(trialIDs(m));
-    
+    [~,trialNum] = strtok(dac.Events.Messages.info(trialIDs(m)));
+    trial(m).TRIALID = str2num(trialNum{1});
     if m == length(trialIDs)
         t2 = dac.Samples.time(end);    
     else
@@ -80,9 +99,11 @@ for m = 1:length(trialIDs)
         indxsacevents = dac.Events.Esacc.start>t1 & dac.Events.Esacc.start<t2;
         if strcmp(upper(ojo),dac.Events.Start.eye{m}) || strcmp('BINOCULAR',dac.Events.Start.eye{m})
             sacevents = indxsacevents & strncmpi(ojo,dac.Events.Esacc.eye,5);
+            trial(m).(ojo).saccade.pcstart  = dac.Events.Esacc.start(sacevents);
             trial(m).(ojo).saccade.start    = dac.Events.Esacc.start(sacevents)-synctT-lag;
             trial(m).(ojo).saccade.sx       = dac.Events.Esacc.posX(sacevents);
             trial(m).(ojo).saccade.sy       = dac.Events.Esacc.posY(sacevents);
+            trial(m).(ojo).saccade.pcend      = dac.Events.Esacc.end(sacevents);
             trial(m).(ojo).saccade.end      = dac.Events.Esacc.end(sacevents)-synctT-lag;
             trial(m).(ojo).saccade.ex       = dac.Events.Esacc.posXend(sacevents);
             trial(m).(ojo).saccade.ey       = dac.Events.Esacc.posYend(sacevents);
@@ -113,6 +134,8 @@ for m = 1:length(trialIDs)
             if length(unique(dac.Samples.px(:,ey)))>1
                 trial(m).(ojo).samples.rawx     = dac.Samples.px(sampleindx,ey)';
                 trial(m).(ojo).samples.rawy     = dac.Samples.py(sampleindx,ey)';
+                trial(m).(ojo).samples.rawx(trial(m).(ojo).samples.rawx==dac.MISSING_DATA_VALUE)=nan;
+                trial(m).(ojo).samples.rawy(trial(m).(ojo).samples.rawy==dac.MISSING_DATA_VALUE)=nan;
                 trial(m).(ojo).samples.rawxvel  = dac.Samples.rxvel(sampleindx,ey)';
                 trial(m).(ojo).samples.rawyvel  = dac.Samples.ryvel(sampleindx,ey)';
                   trial(m).(ojo).samples.rx  = dac.Samples.rx(sampleindx,1)';
@@ -140,12 +163,23 @@ for m = 1:length(trialIDs)
         for mf = 1:length(messfield)
             indxfield   = find(strncmpi(messfield{mf},mess(:,1),20));
             indx        = indxfield(find(messtime(indxfield)>t1 & messtime(indxfield)<t2));
+            % if there is more than one message of the type, use only the
+            % first one
+%             if length(indx)>1
+%                 warning(sprintf('There is more than one message of the type %s in trial %d\n, keeping only the first one',messfield{mf},m))
+%                 indx = indx(1);
+%             end
+                
             if isempty(indx)
                 trial(m).(messfield{mf}) = [];
             else
                 trial(m).(messfield{mf}).time = messtime(indx)-synctT-lag;
                 trial(m).(messfield{mf}).pctime = messtime(indx);
-                trial(m).(messfield{mf}).msg  = cell2mat(mess(indx,2));
+                try
+                    trial(m).(messfield{mf}).msg  = cell2mat(mess(indx,2));
+                catch
+                    trial(m).(messfield{mf}).msg  = mess(indx,2);
+                end
             end
         end
     end

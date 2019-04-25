@@ -15,8 +15,8 @@ function [cfg, varargout] = correct_channels(cfg, varargin)
 % 
 % Somewhen, JPO, OSNA
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-if exist([cfg.expfolder 'subjects_master_files/' upper(cfg.sujid) '_channels_corrections.mat'])    % check if there is a file that contain subject channels to correct exits (this is specially the case for multisession data)
-    load([cfg.expfolder 'subjects_master_files/' upper(cfg.sujid) '_channels_corrections.mat'])
+if exist([cfg.preprocanalysisfolder 'subjects_master_files/' upper(cfg.sujid) '_channels_corrections.mat'])    % check if there is a file that contain subject channels to correct exits (this is specially the case for multisession data)
+    load([cfg.preprocanalysisfolder 'subjects_master_files/' upper(cfg.sujid) '_channels_corrections.mat'])
         cfg.correct_chan = [];
         cfg.elim_chan = [];
     if sum(strcmp(cfg.filename,chan_cor.filestochange))>0                                          % look is there is information of channel to remove for this specific session/file

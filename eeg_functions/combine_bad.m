@@ -33,6 +33,7 @@ for it = 1:size(bad,2)
         if ~isempty(badchans), new_badchans{it}    = new_bad_auxchans; end
     else
         new_bad{it}         = [];
+        new_badchans{it}    = [];
     end
 end
 if it==1

@@ -8,5 +8,5 @@ for oo = 1:length(objleg)
     end
 end
 leghandle.Box = 'off';
-leghandle.FontSize = 6;
+leghandle.FontSize = fontsize;
 leghandle.Position = position;

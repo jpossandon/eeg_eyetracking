@@ -11,8 +11,8 @@ function clean_channel_corrections(cfg,filename)
 % JPO, OSNA, dec/2013
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-if exist([cfg.expfolder 'subjects_master_files/' upper(cfg.sujid) '_channels_corrections.mat'])
-    load([cfg.expfolder 'subjects_master_files/' upper(cfg.sujid) '_channels_corrections.mat'])
+if exist([cfg.preprocanalysisfolder 'subjects_master_files/' upper(cfg.sujid) '_channels_corrections.mat'])
+    load([cfg.preprocanalysisfolder 'subjects_master_files/' upper(cfg.sujid) '_channels_corrections.mat'])
     ix  =  strmatch(filename,chan_cor.filestochange);
     if ~isempty(ix)
         remove = [];
@@ -26,7 +26,7 @@ if exist([cfg.expfolder 'subjects_master_files/' upper(cfg.sujid) '_channels_cor
         chan_cor.elim_chan(remove)     = [];
         chan_cor.pre(remove)           = [];
     
-    save([cfg.expfolder 'subjects_master_files/' upper(cfg.sujid) '_channels_corrections.mat'],'chan_cor')
+    save([cfg.preprocanalysisfolder 'subjects_master_files/' upper(cfg.sujid) '_channels_corrections.mat'],'chan_cor')
     sprintf('\n%s_channels_corrections was reset for file %s\n',upper(cfg.sujid),filename) 
     end
 end
