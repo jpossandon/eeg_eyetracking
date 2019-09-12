@@ -15,9 +15,9 @@ function  [clusters] = clustereeg(st,H,elec,ch,times)
              elseif ch==1 && times>1
          [clusterp] = findclus(permute(HPos,[2 1]),elec.channeighbstructmat,'id');
          [clustern] = findclus(permute(HNeg,[2 1]),elec.channeighbstructmat,'id');
-%     elseif ch>1 && times==1
-%         [clusterp] = findclus(squeeze(HPos),elec.channeighbstructmat,'id');
-%         [clustern] = findclus(squeeze(HNeg),elec.channeighbstructmat,'id');
+     elseif ch>1 && times==1
+         [clusterp] = findclus(squeeze(HPos),elec.channeighbstructmat,'id');
+         [clustern] = findclus(squeeze(HNeg),elec.channeighbstructmat,'id');
      end
      if any(clusterp(:))
         for cn = 1:max(clusterp(:))

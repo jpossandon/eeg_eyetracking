@@ -30,7 +30,7 @@ fixs    = accumarray(double(round(lfixall)), 1,siz);
 % gauss = gauss./sum(gauss(:)); 
 % fixpdf  = conv2(fixs,gauss, 'same');
 
-X       = -2.5*gwinstd:1:2.5*gwinstd;
+X       = -3*gwinstd:1:3*gwinstd;
 gauss   = 1./(2*pi*gwinstd^2).*exp(-(X.^2)./(2*gwinstd.^2));
 gauss = gauss./sum(gauss(:));
 fixpdf  = conv2(fixs,gauss, 'same');

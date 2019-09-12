@@ -1,7 +1,7 @@
 function h = newtplot(data,time,smooth,lines,cax,name)
 
 h = figure;
- set(h,'Position',[500 100 800 800])
+%  set(h,'Position',[500 100 800 800])
 %   set(h,'Position',[500 500 800 310])
 % subplot(1,2,1)
 

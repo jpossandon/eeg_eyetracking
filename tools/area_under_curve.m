@@ -25,7 +25,7 @@
 %intervals for the area under the ROC curve of a continuous-scale diagnostic
 %test. Statistical Methods in Medical Research,17:207.
 
-function [auc] = area_under_curve(Act, Con, varargin)
+function [auc,STATS] = area_under_curve(Act, Con, varargin)
 
 %ATTENTION: In the LC modification framework, for negative modifications, I
 %call the function with controls as the first input and actuals as the

@@ -1,4 +1,4 @@
-function [sac, radius, threshold] = saccade(cfg, data)%(x,vel,VFAC,MINDUR,THRESHOLD)
+function [sac, radius, threshold, sacstruct] = saccade(cfg, data,times)%(x,vel,VFAC,MINDUR,THRESHOLD)
 %-------------------------------------------------------------------
 %
 %  FUNCTION microsacc.m
@@ -11,6 +11,8 @@ function [sac, radius, threshold] = saccade(cfg, data)%(x,vel,VFAC,MINDUR,THRESH
 %   29/07/08 JPO modified for saccade detection with a fixed treshold
 %               - THREShOLD :    0 , it uses the relative velocity threshold
 %                               >0 , it uses THRESHOLD as a fixed one
+%   19/07/19 JPO modified for identifying interupted saccades (blinks end
+%   start and also provide resutls as a structure
 %-------------------------------------------------------------------
 %
 %  INPUT:
@@ -29,29 +31,40 @@ function [sac, radius, threshold] = saccade(cfg, data)%(x,vel,VFAC,MINDUR,THRESH
 %  sac(1:num,5)   vertical component       (dy)
 %  sac(1:num,6)   horizontal amplitude     (dX)
 %  sac(1:num,7)   vertical amplitude       (dY)
-%
+%  sac(1:num,8)   start after or ends before missing data or data collection
 %---------------------------------------------------------------------
 
-
+if nargout>3 && nargin<3
+    error('cannot provide sac struct wihtout time info')
+end
 
 x           = data;
 normx       = data./cfg.resolution;
-vel         = vecvel(normx, cfg.fs, 2);  vel(find(vel(:,1)>=1000000 | vel(:,1)<=-1000000),:) = 0;
+[vel acel]  = vecvel(normx, cfg.fs, 3);  
+acel(find(vel(:,1)>=1000000 | vel(:,1)<=-1000000),:) = 0;
+vel(find(vel(:,1)>=1000000 | vel(:,1)<=-1000000),:) = 0;
 VFAC        = cfg.vfac;
+
 MINDUR      = cfg.mindur;
 THRESHOLD   = cfg.threshold;
+if isfield(cfg,'vfaca') & isfield(cfg,'thresholda')
+    VFACA        = cfg.vfaca;
+    THRESHOLDA   = cfg.thresholda;
+end
 
 % compute threshold
-msdx = sqrt( median(vel(:,1).^2) - (median(vel(:,1)))^2 );
-msdy = sqrt( median(vel(:,2).^2) - (median(vel(:,2)))^2 );
+msdx = sqrt( nanmedian(vel(:,1).^2) - (nanmedian(vel(:,1)))^2 );
+msdy = sqrt( nanmedian(vel(:,2).^2) - (nanmedian(vel(:,2)))^2 );
+msdxa = sqrt( nanmedian(acel(:,1).^2) - (nanmedian(acel(:,1)))^2 );
+msdya = sqrt( nanmedian(acel(:,2).^2) - (nanmedian(acel(:,2)))^2 );
 if msdx<realmin
-    msdx = sqrt( mean(vel(:,1).^2) - (mean(vel(:,1)))^2 );
+    msdx = sqrt( nanmean(vel(:,1).^2) - (nanmean(vel(:,1)))^2 );
     if msdx<realmin
         error('msdx<realmin in microsacc.m');
     end
 end
 if msdy<realmin
-    msdy = sqrt( mean(vel(:,2).^2) - (mean(vel(:,2)))^2 );
+    msdy = sqrt( nanmean(vel(:,2).^2) - (nanmean(vel(:,2)))^2 );
     if msdy<realmin
         error('msdy<realmin in microsacc.m');
     end
@@ -66,11 +79,28 @@ else
     radius = [THRESHOLD THRESHOLD];
 end
 
+if isfield(cfg,'vfaca') & isfield(cfg,'thresholda')
+    if THRESHOLDA == 0
+        radiusxa = VFACA*msdxa;
+        radiusya = VFACA*msdya;
+        radiusa = [radiusxa radiusya];
+    else
+        radiusxa = THRESHOLDA;
+        radiusya = THRESHOLDA;
+        radiusa = [THRESHOLDA THRESHOLDA];
+    end
+thresholda = min(radiusa);    
+end
 threshold = min(radius);
+
 
 % compute test criterion: ellipse equation
 test = (vel(:,1)/radiusx).^2 + (vel(:,2)/radiusy).^2;
 indx = find(test>1);
+if isfield(cfg,'vfaca') & isfield(cfg,'thresholda')
+    testa = (acel(:,1)/radiusxa).^2 + (acel(:,2)/radiusya).^2;
+    indxa = find(testa>1);
+end
 
 % determine saccades
 N = length(indx); 
@@ -84,9 +114,16 @@ while k<N
         dur = dur + 1;
     else
         if dur>=MINDUR
-            nsac = nsac + 1;
-            b = k;
-            sac(nsac,:) = [indx(a) indx(b)];
+            b = k; 
+            if isfield(cfg,'vfaca') & isfield(cfg,'thresholda')
+                if ~isempty(find(indxa>indx(a) & indxa<indx(b))) 
+                    nsac = nsac + 1;
+                    sac(nsac,:) = [indx(a) indx(b)];
+                end
+            else
+                nsac = nsac + 1;
+               sac(nsac,:) = [indx(a) indx(b)];
+            end
         end
         a = k+1;
         dur = 1;
@@ -123,4 +160,33 @@ for s=1:nsac
     dX = sign(ix2-ix1)*(maxx-minx);
     dY = sign(iy2-iy1)*(maxy-miny);
     sac(s,6:7) = [dX dY];
+    if sac(s,1)>5 & sac(s,2)<size(x,1)-5
+        if any(any(isnan(x(sac(s,1)-5:sac(s,1)-1,:)))) || any(any(isnan(x(sac(s,2)+1:sac(s,2)+5,:))))
+            sac(s,8) = 1;
+        else
+            sac(s,8) = 0;
+        end
+    else
+        sac(s,8) = 1;
+    end
+end
+if isfield(cfg,'vfaca') & isfield(cfg,'thresholda')
+    threshold = [threshold thresholda];
+end
+if nargout>3
+    if isempty(sac)
+        sacstruct = struct('start',[],'end',[],'sx',[],'sy',[],'ex',[],'ey',[],'speed',[],'dur',[],'amp',[],'vec',[],'interrupt',[]);
+    else
+        sacstruct.start  = times(sac(:,1));
+        sacstruct.end    = times(sac(:,2));
+        sacstruct.sx     = x(sac(:,1),1)';
+        sacstruct.sy     = x(sac(:,1),2)';
+        sacstruct.ex     = x(sac(:,2),1)';
+        sacstruct.ey     = x(sac(:,2),2)';
+        sacstruct.speed  = sac(:,3)';
+        sacstruct.dur    = sacstruct.end-sacstruct.start;
+        sacstruct.amp    = sqrt(sac(:,6).^2+sac(:,7).^2)';
+        sacstruct.vec    = sqrt(sac(:,4).^2+sac(:,5).^2)';
+        sacstruct.interrupt = sac(:,8)';
+    end
 end
