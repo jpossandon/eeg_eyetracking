@@ -76,7 +76,7 @@ elseif strcmp(type,'WS')
     cfg.elec = elec;
     cfg.rotate = 0;
     cfg.method = 'montecarlo';
-    cfg.statistic = 'depsamplesT';
+    cfg.statistic = 'ft_statfun_depsamplesT';
     cfg.correctm = 'cluster';
     cfg.clusteralpha = 0.01;
     cfg.clusterstatistic = 'maxsum';

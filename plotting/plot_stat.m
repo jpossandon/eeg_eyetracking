@@ -40,6 +40,7 @@ if isfield(stat,'posclusterslabelmat')
         strprob = 'prob_abs';
     end
 end
+% strprob = 'prob';
 if isfield(stat,'posclusters')
     if ~isempty(stat.posclusters)
         for e = 1:length(stat.posclusters)
@@ -122,14 +123,15 @@ for t = tiempos
      indxsamples    = data1vsdata2.time>=t & data1vsdata2.time<t+times(3);
 %      topoplot(mean(data1vsdata2.avg(:,indxsamples),2),chanlocs,'emarker',{'.','k',5,1},'emarker2',{cfg.highlightchannel,'.','k',15,1},'maplimits',zlim);
      if isfield(cfg,'highlightchannel')
-          topoplot(mean(data1vsdata2.avg(:,indxsamples),2),chanlocs,'emarker2',{cfg.highlightchannel,'.',[0 0 0],8,1},'maplimits',zlim,'colormap',cmap,'headrad','rim','electrodes','off');
+          topoplot(mean(data1vsdata2.avg(:,indxsamples),2),chanlocs,'emarker2',{cfg.highlightchannel,'.',[0 0 0],4.4},'maplimits',zlim,'colormap',cmap,'headrad','rim','electrodes','off');
 %               topoplot(mean(data1vsdata2.avg(:,indxsamples),2),chanlocs,'emarker2',{cfg.highlightchannel,'.',[0.4 0.4 0.4],11,1},'maplimits',zlim,'colormap',cmap,'headrad','rim','electrodes','off');
 %            topoplot(mean(data1vsdata2.avg(:,indxsamples),2),chanlocs,'emarker2',{cfg.highlightchannel,'.',[0 0 0],5,1},'maplimits',zlim,'colormap',cmap,'electrodes','off');
-           
+           fixtopotlines
            axis([-.6 .6 -.6 .6])
            %           brill
      else
            topoplot(mean(data1vsdata2.avg(:,indxsamples),2),chanlocs,'maplimits',zlim,'colormap',cmap,'headrad','rim','electrodes','off');
+           fixtopotlines
 %           topoplot(mean(data1vsdata2.avg(:,indxsamples),2),chanlocs,'maplimits',zlim,'colormap',cmap,'electrodes','off');
             axis([-.6 .6 -.6 .6])
      end

@@ -11,7 +11,9 @@ meta.raw    = dac.Header.raw;
 
 trialIDs  = strmatch('TRIALID', dac.Events.Messages.info);
 synctimes = strmatch('SYNCTIME', dac.Events.Messages.info);
-
+if isempty(synctimes) % nystagmus test data
+    synctimes = strmatch('RESET_START_TIME', dac.Events.Messages.info);
+end
 if isempty(synctimes)
     display(sprintf('\n\nNO SYNTCTIMES\n\n'))
 else
@@ -54,6 +56,17 @@ if ~isempty(triggers)
     trigtime  = dac.Events.Messages.time(triggers);
 %     trigfield = (unique(trig(:,1)));
 end
+
+% for nystagmus data
+disp_scr  = find(~cellfun(@isempty,regexp(dac.Events.Messages.info,'DISPLAY_SCREEN')));
+if ~isempty(disp_scr)
+    positions      = regexp(dac.Events.Messages.info(disp_scr),' ','split')';
+    positions      = cat(1,positions{:});
+    positions      = cellfun(@str2num,(regexp(positions(:,[5,6]),'\d+','match','once')));
+    postime        = dac.Events.Messages.time(disp_scr);
+%     trigfield = (unique(trig(:,1)));
+end
+
 for m = 1:length(trialIDs)
     t1 = dac.Events.Messages.time(trialIDs(m));
     [~,trialNum] = strtok(dac.Events.Messages.info(trialIDs(m)));
@@ -192,6 +205,18 @@ for m = 1:length(trialIDs)
             trial(m).trigger.time = trigtime(indx)-synctT-lag;
             trial(m).trigger.pctime = trigtime(indx);
             trial(m).trigger.value  = str2double(trig(indx));
+        end
+
+    end
+    if ~isempty(disp_scr)
+        indx        = find(postime>t1 & postime<t2);
+
+        if isempty(indx)
+            trial(m).disp_scr = [];
+        else
+            trial(m).disp_scr.time = postime(indx)-synctT-lag;
+            trial(m).disp_scr.pctime = postime(indx);
+            trial(m).disp_scr.value  = positions(indx,:);
         end
 
     end

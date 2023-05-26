@@ -1,4 +1,4 @@
-function fh = seq_cohplots(cfg_eeg,cohData,times,cohlims,alpha)
+    function fh = seq_cohplots(cfg_eeg,cohData,times,cohlims,alpha)
 
 %%
 % get the position of the channels in the plot
@@ -7,49 +7,72 @@ load(cfg_eeg.chanlocs)
 elec        = bineigh(elec);
 nchans  = length(chanlocs);
 hfd     = figure;
-topoplot(zeros(nchans,1),chanlocs,'headrad','rim','electrodes','on');
+topoplot(zeros(nchans,1),chanlocs,'electrodes','on');
 da      = get(gca,'Children');
 xpos    = da(1).XData;
 ypos    = da(1).YData;
 close(hfd)
     
+                 
 %%
 % cohimthr =.15;
 % alfa     = .001;
 
-sactimes    = times(1):times(3):times(2);
-sp_c        = length(sactimes)-1;
-
 fh = figure;
-figurewidthinpix = 1200;
-set(gcf,'Position',[0 10 figurewidthinpix figurewidthinpix/(length(sactimes)-1)/.7])  %17.6 is the largest size in centimeters for a jneurosci figure
-
+if ~isempty(times)
+    sactimes    = times(1):times(3):times(2);
+    sp_c        = length(sactimes)-1;
+    figurewidthinpix = 1200;
+    set(gcf,'Position',[0 10 figurewidthinpix figurewidthinpix/(length(sactimes)-1)/.7])  %17.6 is the largest size in centimeters for a jneurosci figure
+    botbottom = 0.3;
+else
+    sactimes = [NaN NaN];
+    sp_c=1;
+     set(gcf,'Position',[0 10 400 400])
+     botbottom = 0.01;
+end
 load('cmapjp','cmap')
-cmap3 = cbrewer('div','RdYlBu',11);
+cmap2 = flipud(cbrewer('seq','YlGnBu',128));
+cmap3 = cbrewer('qual','Set3',12);
 spwidth     = .98/sp_c;
 botleft     = .01;
-compDist    = 'MAXst';
+% compDist    = 'MAXst';
 compDist    = 'MAXst_noabs';
 
 for t = 1:length(sactimes)-1
-    subplot('Position',[botleft 0.3 spwidth 0.7])
-    tp = topoplot(zeros(nchans,1),chanlocs,'colormap',cmap,'emarker',{'.','k',1,1},'whitebk','on','shading','interp','electrodes','on','headrad','rim');
+    subplot('Position',[botleft botbottom spwidth 1-botbottom])
+    tp = topoplot(zeros(nchans,1),chanlocs,'colormap',cmap,'emarker',{'.','k',1,1},'whitebk','on','shading','interp','electrodes','on');
     axis([-.6 .6 -.6 .6])
+            fixtopotlines
     hold on
-    s_T         = find(cohData.time>sactimes(t) &cohData.time<sactimes(t+1));
+    if ~isempty(times)
+  	 s_T         = find(cohData.time>sactimes(t) &cohData.time<sactimes(t+1));
+    else
+        s_T = 1;
+    end
     if isfield(cohData,'clusters')    %STAT DATA
         if strcmp(compDist,'MAXst')
+            if size(cohData.clusters.MAXst,1)>1
             thrpos = prctile(cohData.clusters.MAXst,1-alpha*100);
+            else
+                thrpos = 0;
+            end
             thrneg = thrpos;
         elseif strcmp(compDist,'MAXst_noabs')
+             if size(cohData.clusters.MAXst_noabs,1)>1
             thrpos = prctile(cohData.clusters.MAXst_noabs(:,1),100-alpha/2*100);
             thrneg = prctile(cohData.clusters.MAXst_noabs(:,2),alpha/2*100);
+             else
+                  thrpos = 0;
+                   thrneg = 0;
+             end
         end
        
         
-        posColor = cohData.clusters.maxt_pos>thrpos;
+        posColor2 = cohData.clusters.maxt_pos>thrpos;
+        posColor = nan(1,length(posColor2));
         if ~isempty(posColor)
-            posColor(find(posColor)) = 0:sum(posColor)-1;
+            posColor(find(posColor2)) = 0:sum(posColor2)-1;
             for posc = 1:length(cohData.clusters.maxt_pos)
                 if cohData.clusters.maxt_pos(posc)>thrpos
                     cv = elec.bi.chan_comb(find(any(cohData.clusters.clus_pos(:,s_T) ==posc,2)),:);
@@ -70,9 +93,10 @@ for t = 1:length(sactimes)-1
                 end
             end
         end
-        negColor = abs(cohData.clusters.maxt_neg)>abs(thrneg);
+        negColor2 = abs(cohData.clusters.maxt_neg)>abs(thrneg);
+        negColor = nan(1,length(negColor2));
         if ~isempty(negColor)
-            negColor(find(negColor)) = 0:sum(negColor)-1;
+            negColor(find(negColor2)) = 0:sum(negColor2)-1;
          for negc = 1:length(cohData.clusters.maxt_neg)
             if abs(cohData.clusters.maxt_neg(negc))>abs(thrneg)
                 cv = elec.bi.chan_comb(find(any(cohData.clusters.clus_neg(:,s_T) ==negc,2)),:);
@@ -94,8 +118,11 @@ for t = 1:length(sactimes)-1
         end
     else
         
+        if isempty(times)
+            s_T = 1;
+        end
         h           = cohData.p(:,:,s_T);
-        h           = any(h<alpha,3);    % if any value in the time segment is significant
+        h           = any(h<=alpha,3);    % if any value in the time segment is significant
         auxcohim    = nanmean(cohData.cohspctrm(:,:,s_T),3);
     %             maxdif      = max(max(max(mean(cohim(:,:,:,:)))));
         sigcohim    = triu(h);
@@ -105,14 +132,14 @@ for t = 1:length(sactimes)-1
                 for ia = 1:length(cv)
     %                 cval = [1 0 0];
                     if auxcohim(ch,cv(ia))>=cohlims(2)
-                        cval = cmap(end,:);
+                        cval = cmap2(end,:);
                     elseif auxcohim(ch,cv(ia))<=cohlims(1)    
-                        cval = cmap(1,:);
+                        cval = cmap2(1,:);
                     else
-                        cval = cmap(find(linspace(cohlims(1),cohlims(2),size(cmap,1))>auxcohim(ch,cv(ia)),1),:);
+                        cval = cmap2(find(linspace(cohlims(1),cohlims(2),size(cmap2,1))>auxcohim(ch,cv(ia)),1),:);
                     end
     %                 cval = cmap3(1+round((auxcohim(ch,cv(ia))+maxdif)/2/maxdif*(size(cmap3,1)-1)),:);
-                    plot([xpos(ch) xpos(cv(ia))],[ypos(ch) ypos(cv(ia))],'Color',cval,'LineWidth',1)
+                    plot([xpos(ch) xpos(cv(ia))],[ypos(ch) ypos(cv(ia))],'Color',cval,'LineWidth',1.5)
                 end
             end
         end
@@ -120,7 +147,8 @@ for t = 1:length(sactimes)-1
     botleft = botleft+spwidth;
 end
    
-subplot('Position',[.01 0.3 .98 0.0])
+if ~isempty(times)
+subplot('Position',[.01 botbottom .98 0.0])
 box off
 xlim([times(1) times(2)])
 set(gca,'YTick',[],'XTick',sactimes,'FontSize',8)
@@ -131,5 +159,5 @@ for ip = 1:2:length(xTickLabels)
 end
 % ylim(collim*2)
 set(gca,'XTickLabel',xTickLabels); 
-    
+end   
  

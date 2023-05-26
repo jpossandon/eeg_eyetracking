@@ -46,7 +46,7 @@ for chs = 1:length(i)
           a = data(chan, indx(i));
           b = data(nbindx, indx(i));
           if replaceby(a)==replaceby(b)
-            % do nothing
+            % do nothingx
             continue;
           elseif replaceby(a)<replaceby(b)
             % replace all entries with content replaceby(b) by replaceby(a).

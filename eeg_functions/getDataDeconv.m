@@ -35,6 +35,6 @@ end
     end
     %need to filter the data, otherwise betas all disalignes
     if hpfilter
-    EEG = pop_eegfiltnew(EEG, 0.25, 45, 3300, 0, [],0);
+    EEG = pop_eegfiltnew(EEG, 0.25, 45, 6600, 0, [],0);
      EEG = eeg_checkset( EEG );
     end
