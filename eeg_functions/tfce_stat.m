@@ -26,5 +26,7 @@ end
 alpha = .05
 [p] = prctile(maxvalues,[alpha*100/2 100-alpha*100/2])
 stat.h = tclusreal<p(1)|tclusreal>p(2);
+% maxvaluessorted = sort(maxvalues);
+% stat.p = p;
 
 

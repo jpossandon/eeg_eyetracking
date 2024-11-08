@@ -22,8 +22,13 @@ tic
             % this is centering and bootstraping the data
 %              auxdata_center      = auxdata-repmat(mean(auxdata),[subjects 1 1 1]);
 %              auxdata             = auxdata_center(randsample(1:subjects,subjects,'true'),:,:);
-                auxdata1     = auxdata1(randsample(1:subjects1,subjects1,'true'),:,:); 
-                auxdata2     = auxdata2(randsample(1:subjects2,subjects2,'true'),:,:); 
+                alldata = cat(1,auxdata1,auxdata2);
+    
+     aux_R = randsample(1:subjects1+subjects2,subjects1+subjects2) ;         % TODO rand seed
+     % [tclus,tstat]          = tfce(alldata(aux_R(1:t1),:,:),alldata(aux_R(t1+1:end),:,:),elec.channeighbstructmat,'unpaired');
+  
+                auxdata1     = alldata(aux_R(1:subjects1),:,:); 
+                auxdata2     = alldata(aux_R(subjects1+1:end),:,:); 
               
         end
         
@@ -62,7 +67,7 @@ for b = 1:betas
         result.TCFEstat(b).posclusterslabelmat = posclus;
         for ei = [unique(result.TCFEstat(b).posclusterslabelmat)]'
             if ei>0
-            result.TCFEstat(b).posclusters(ei).prob = .001; % this need to be fixed 
+            result.TCFEstat(b).posclusters(ei).prob_abs = .001; % this need to be fixed 
             end
         end
     else
@@ -74,7 +79,7 @@ for b = 1:betas
         result.TCFEstat(b).negclusterslabelmat = negclus;
         for ei = unique(result.TCFEstat(b).negclusterslabelmat)'
             if ei>0
-            result.TCFEstat(b).negclusters(ei).prob = .001; % this need to be fixed 
+            result.TCFEstat(b).negclusters(ei).prob_abs = .001; % this need to be fixed 
             end
         end
     else

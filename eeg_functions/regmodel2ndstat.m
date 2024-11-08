@@ -226,6 +226,7 @@ switch mc
     case('cluster')
         for b = 1:betas
             result.clusters(b).texto = [];
+            signposclus = [];
             if find(result.clusters(b).clus_pos(:)>0)
                 result.clusters(b).posclusterslabelmat = result.clusters(b).clus_pos;
                 result.clusters(b).posclusters_prob_abs = nan(size(result.clusters(b).clus_pos));
@@ -238,9 +239,10 @@ switch mc
                         result.clusters(b).posclusters_prob_abs(result.clusters(b).posclusterslabelmat==ei) = result.clusters(b).posclusters(ei).prob_abs; 
                         if  result.clusters(b).posclusters(ei).prob_abs<alfa
                         indxclus = find(sum(result.clusters(b).posclusterslabelmat==ei));
-                        result.clusters(b).texto = [result.clusters(b).texto;sprintf('Positive cluster %03d prob_abs = %1.4f, from t %+05d to %+05d ms',ei,...
-                            result.clusters(b).posclusters(ei).prob_abs,round(1000*result.clusters(b).time(indxclus(1))),...
-                            round(1000*result.clusters(b).time(indxclus(end))))];
+                        result.clusters(b).texto = [result.clusters(b).texto;sprintf('Positive cluster %03d prob_abs = %1.5f, from t %d to %d ms',ei,...
+                            result.clusters(b).posclusters(ei).prob_abs,round(result.clusters(b).time(indxclus(1))),...
+                            round(result.clusters(b).time(indxclus(end))))];
+                        signposclus = [signposclus,ei];
                         end
 
                     end
@@ -250,6 +252,7 @@ switch mc
                 result.clusters(b).posclusters = []; 
                 result.clusters(b).posclusters_prob_abs = [];
             end
+            signnegclus = [];
             if find(result.clusters(b).clus_neg(:)>0)
                 result.clusters(b).negclusterslabelmat = result.clusters(b).clus_neg;
                 result.clusters(b).negclusters_prob_abs = nan(size(result.clusters(b).clus_neg));
@@ -264,9 +267,10 @@ switch mc
                         
                         if result.clusters(b).negclusters(ei).prob_abs<alfa
                         indxclus = find(sum(result.clusters(b).negclusterslabelmat==ei));
-                        result.clusters(b).texto = [result.clusters(b).texto;sprintf('Negative cluster %03d prob_abs = %1.4f, from t %+05d to %+05d ms',ei,...
-                            result.clusters(b).negclusters(ei).prob_abs,round(1000*result.clusters(b).time(indxclus(1))),...
-                            round(1000*result.clusters(b).time(indxclus(end))))];
+                        result.clusters(b).texto = [result.clusters(b).texto;sprintf('Negative cluster %03d prob_abs = %1.5f, from t %d to %d ms',ei,...
+                            result.clusters(b).negclusters(ei).prob_abs,round(result.clusters(b).time(indxclus(1))),...
+                            round(result.clusters(b).time(indxclus(end))))];
+                        signnegclus = [signnegclus,ei];
                         end
 
                     end
@@ -276,6 +280,8 @@ switch mc
                 result.clusters(b).negclusterslabelmat = [];
                 result.clusters(b).negclusters_prob_abs = [];
             end
+            result.clusters(b).signnegclus = signnegclus;
+            result.clusters(b).signposclus = signposclus;
         end
         
 end

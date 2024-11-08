@@ -77,7 +77,11 @@ else
 end
 % segms   = (stat.time(end)-stat.time(1))/times(3);
 % t = stat.time;
+try
  load(cfgp.chanlocs)
+catch
+    chanlocs = cfgp.chanlocs;
+end
 % elimchanloc = [];
 %     for ch =1:length(chanlocs)
 %         if isempty(strmatch(chanlocs(ch).labels(1:end),data.label,'exact'))   %before labels(2:end) need to do a general fix for all types of channel info
@@ -123,7 +127,7 @@ for t = tiempos
      indxsamples    = data1vsdata2.time>=t & data1vsdata2.time<t+times(3);
 %      topoplot(mean(data1vsdata2.avg(:,indxsamples),2),chanlocs,'emarker',{'.','k',5,1},'emarker2',{cfg.highlightchannel,'.','k',15,1},'maplimits',zlim);
      if isfield(cfg,'highlightchannel')
-          topoplot(mean(data1vsdata2.avg(:,indxsamples),2),chanlocs,'emarker2',{cfg.highlightchannel,'.',[0 0 0],4.4},'maplimits',zlim,'colormap',cmap,'headrad','rim','electrodes','off');
+          topoplot(mean(data1vsdata2.avg(:,indxsamples),2),chanlocs,'emarker2',{cfg.highlightchannel,'.',[0 0 0],5},'maplimits',zlim,'colormap',cmap,'headrad','rim','electrodes','off');
 %               topoplot(mean(data1vsdata2.avg(:,indxsamples),2),chanlocs,'emarker2',{cfg.highlightchannel,'.',[0.4 0.4 0.4],11,1},'maplimits',zlim,'colormap',cmap,'headrad','rim','electrodes','off');
 %            topoplot(mean(data1vsdata2.avg(:,indxsamples),2),chanlocs,'emarker2',{cfg.highlightchannel,'.',[0 0 0],5,1},'maplimits',zlim,'colormap',cmap,'electrodes','off');
            fixtopotlines

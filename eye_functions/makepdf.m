@@ -9,7 +9,7 @@ function [fixpdf,fixs] = makepdf(x,y,gwinstd,siz,redux,ploteo)
 %            siz        - size of the original image
 %            redux      - integer to reduce the size of the result
 %                           image/matrix, a value of 2 reduce it to half
-%            ploteo     - top plot or not plot
+%            ploteo     - to plot or not to plot
 %   output
 %            fixpdf     - the 2D fixation desnsity
 %            fixs       - the 2D fixations counts per pixel

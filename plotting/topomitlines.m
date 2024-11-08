@@ -1,4 +1,4 @@
-function fh = topomitlines(cfg,stat,betas,plotinterval,collim,half)
+function fh = topomitlines(cfg,stat,betas,plotinterval,collim,half,xtickevery )
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
@@ -52,8 +52,8 @@ else
     set(gca,'YTick',[],'XTick',round([plotinterval(1):plotinterval(3):plotinterval(2)]*1000)/1000,'FontSize',5)
     xTickLabels = cell(1,length(plotTimes));  % Empty cell array the same length as xAxis
 end
-   tuptick = get(gca,'XTick');
-   for ip = 1:2:length(xTickLabels)
+tuptick = get(gca,'XTick');
+for ip = 1:xtickevery :length(xTickLabels)
     xTickLabels{ip} = tuptick(ip);
 end
 ylim(collim*2)

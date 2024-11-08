@@ -6,4 +6,4 @@
 maphot = colormap(hot);
 cmap = maphot;
 cmap = flipud([cmap;flipud(fliplr(maphot))]);
-save('/home/staff/j/jossando/matlab/eeg_eyetracking/plotting/cmapjp','cmap')
+save('/users/jossando/trabajo/matlab/eeg_eyetracking/plotting/cmapjp','cmap')
